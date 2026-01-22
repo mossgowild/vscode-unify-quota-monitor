@@ -32,7 +32,7 @@ That's it! You can now monitor your quota usage in real-time.
 | Provider | Quota Types | Authentication |
 |----------|-------------|----------------|
 | **OpenAI** | Token usage, reset countdown | Access Token (JWT) |
-| **智谱 AI** | Token limits, MCP quotas | API Key |
+| **Zhipu AI** | Token limits, MCP quotas | API Key |
 | **Z.ai** | Token limits, MCP quotas | API Key |
 | **Google Antigravity** | Token usage, reset countdown | Google OAuth |
 
@@ -70,7 +70,7 @@ That's it! You can now monitor your quota usage in real-time.
 2. Click the **$(plus)** button in the top-right corner
 3. Select a Provider:
    - **OpenAI**: Enter Access Token (JWT)
-   - **智谱 AI / Z.ai**: Enter API Key
+   - **Zhipu AI / Z.ai**: Enter API Key
    - **Google Antigravity**: Authenticate via browser OAuth
 4. (Optional) Set an account alias
 
@@ -190,7 +190,7 @@ Issues and Pull Requests are welcome!
 
 ### 0.0.1 (2025-01-23)
 - ✨ Initial release
-- 🎯 Support for OpenAI, 智谱 AI, Z.ai, Google Antigravity
+- 🎯 Support for OpenAI, Zhipu AI, Z.ai, Google Antigravity
 - 👥 Multi-account support
 - 🏷️ Account aliases
 - 🔄 Auto-refresh functionality
