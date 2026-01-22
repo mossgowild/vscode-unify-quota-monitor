@@ -1,0 +1,128 @@
+{
+  "name": "unify-quota-monitor",
+  "displayName": "Unify Quota Monitor",
+  "description": "Monitor AI provider usage quotas in a beautiful panel view",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Quota",
+      "properties": {
+        "unifyQuota.accounts": {
+          "type": "array",
+          "default": [],
+          "markdownDescription": "Account configuration (managed by extension) / 账号配置（由扩展自动管理）",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "markdownDescription": "Unique account identifier / 账号唯一标识"
+              },
+              "providerId": {
+                "type": "string",
+                "markdownDescription": "Provider ID (openai, google, zhipu, zai) / 提供商 ID"
+              },
+              "alias": {
+                "type": "string",
+                "markdownDescription": "Optional account alias for easy identification / 可选的账号别名，方便识别"
+              },
+              "credential": {
+                "type": "string",
+                "markdownDescription": "Authentication credential (token or JSON) / 认证凭证（令牌或 JSON）"
+              }
+            },
+            "required": ["id", "providerId", "credential"]
+          }
+        },
+        "unifyQuota.autoRefresh": {
+          "type": "object",
+          "default": {
+            "enabled": true,
+            "intervalMs": 60000
+          },
+          "markdownDescription": "Auto-refresh configuration / 自动刷新配置",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "markdownDescription": "Enable auto-refresh / 启用自动刷新"
+            },
+            "intervalMs": {
+              "type": "number",
+              "markdownDescription": "Refresh interval in milliseconds (default: 60000) / 刷新间隔（毫秒，默认：60000）"
+            }
+          }
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "unifyQuota.manageAccounts",
+        "title": "Unify Quota Monitor: Manage Accounts",
+        "icon": "$(plus)"
+      },
+      {
+        "command": "unifyQuota.refresh",
+        "title": "Unify Quota Monitor: Refresh",
+        "icon": "$(refresh)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "unifyQuota-sidebar",
+          "title": "Quota",
+          "icon": "$(dashboard)"
+        }
+      ]
+    },
+    "views": {
+      "unifyQuota-sidebar": [
+        {
+          "type": "webview",
+          "id": "unifyQuota.usageView",
+          "name": "Quota",
+          "icon": "$(dashboard)",
+          "contextualTitle": "Quota"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "unifyQuota.refresh",
+          "when": "view == unifyQuota.usageView",
+          "group": "navigation"
+        },
+        {
+          "command": "unifyQuota.manageAccounts",
+          "when": "view == unifyQuota.usageView",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "18.x",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  }
+}
