@@ -1,98 +1,99 @@
 # Unify Quota Monitor
 
-> 一个简洁美观的 VS Code 扩展，实时监控多个 AI Provider 的配额使用情况
+> A beautiful VS Code extension to monitor usage quotas for multiple AI providers in real-time
 
 ![Preview](images/image.png)
 
-## ✨ 为什么使用 Unify Quota Monitor？
+## ✨ Why Unify Quota Monitor?
 
-在使用多个 AI 服务时，频繁切换各平台查看配额很麻烦。这个扩展将所有用量信息集中在一个侧边栏面板中，让您一目了然地掌握所有账号的配额使用情况。
-
----
-
-## 🚀 快速开始
-
-### 安装
-
-在 VS Code 扩展商店搜索 **"Unify Quota Monitor"** 并点击安装
-
-### 添加第一个账号
-
-1. 点击侧边栏的 **Quota** 图标
-2. 点击右上角的 **$(plus)** 按钮
-3. 选择要添加的 Provider
-4. 根据提示完成认证
-
-就这么简单！现在您可以实时查看配额使用情况了。
+When using multiple AI services, it's tedious to switch between platforms to check quota usage. This extension consolidates all usage information into a single sidebar panel, giving you an at-a-glance view of quota usage across all your accounts.
 
 ---
 
-## 📦 支持的 Provider
+## 🚀 Quick Start
 
-| Provider | 支持的配额类型 | 认证方式 |
-|----------|---------------|----------|
-| **OpenAI** | Token 使用量、重置倒计时 | Access Token (JWT) |
-| **智谱 AI** | Token 限额、MCP 配额 | API Key |
-| **Z.ai** | Token 限额、MCP 配额 | API Key |
-| **Google Antigravity** | Token 使用量、重置倒计时 | Google OAuth |
+### Installation
 
----
+Search for **"Unify Quota Monitor"** in the VS Code Extension Marketplace and click install
 
-## 🎯 核心功能
+### Add Your First Account
 
-### 📊 实时用量监控
-- 在侧边栏实时显示所有 Provider 的配额使用情况
-- 清晰的进度条和百分比显示
-- 自动重置倒计时（如 "4h25m" 后重置）
+1. Click the **Quota** icon in the sidebar
+2. Click the **$(plus)** button in the top-right corner
+3. Select a Provider
+4. Follow the authentication prompts
 
-### 👥 多账号管理
-- 每个 Provider 可添加多个账号
-- 支持为账号设置别名（如 "Work"、"Personal"）
-- 单账号时不显示标签，多账号时清晰展示
-
-### 🔄 自动刷新
-- 默认每分钟自动刷新用量数据
-- 首次加载自动显示，无需手动操作
-- 可在设置中自定义刷新间隔或关闭自动刷新
-
-### 🌍 国际化支持
-- 支持中英文界面
-- 自动跟随 VS Code 的语言设置
+That's it! You can now monitor your quota usage in real-time.
 
 ---
 
-## 📖 使用指南
+## 📦 Supported Providers
 
-### 添加账号
-
-1. 点击侧边栏的 **Quota** 图标
-2. 点击右上角的 **$(plus)** 按钮
-3. 选择 Provider：
-   - **OpenAI**: 输入 Access Token (JWT)
-   - **智谱 AI / Z.ai**: 输入 API Key
-   - **Google Antigravity**: 通过浏览器进行 OAuth 认证
-4. （可选）为账号设置别名
-
-### 管理账号
-
-1. 点击右上角的 **$(plus)** 按钮
-2. 在已登录账号列表中点击要管理的账号
-3. 选择操作：
-   - **设置别名**: 修改账号显示名称
-   - **重新登录**: 更新认证凭证
-   - **退出登录**: 删除该账号
-
-### 刷新用量
-
-点击右上角的 **$(refresh)** 按钮手动刷新所有账号的用量数据
+| Provider | Quota Types | Authentication |
+|----------|-------------|----------------|
+| **OpenAI** | Token usage, reset countdown | Access Token (JWT) |
+| **智谱 AI** | Token limits, MCP quotas | API Key |
+| **Z.ai** | Token limits, MCP quotas | API Key |
+| **Google Antigravity** | Token usage, reset countdown | Google OAuth |
 
 ---
 
-## ⚙️ 配置选项
+## 🎯 Key Features
 
-在 VS Code 设置中搜索 `unifyQuota`：
+### 📊 Real-time Monitoring
+- Display quota usage for all providers in the sidebar
+- Clear progress bars and percentage displays
+- Automatic reset countdowns (e.g., "4h25m" until reset)
 
-### 自动刷新配置
+### 👥 Multi-Account Management
+- Add multiple accounts per provider
+- Set account aliases (e.g., "Work", "Personal")
+- Single account: no label shown
+- Multiple accounts: clear display with aliases or IDs
+
+### 🔄 Auto Refresh
+- Auto-refresh every 60 seconds by default
+- Automatic display on first load, no manual action needed
+- Customize refresh interval or disable in settings
+
+### 🌍 Internationalization
+- Support for English and Chinese
+- Automatically follows VS Code language settings
+
+---
+
+## 📖 User Guide
+
+### Adding Accounts
+
+1. Click the **Quota** icon in the sidebar
+2. Click the **$(plus)** button in the top-right corner
+3. Select a Provider:
+   - **OpenAI**: Enter Access Token (JWT)
+   - **智谱 AI / Z.ai**: Enter API Key
+   - **Google Antigravity**: Authenticate via browser OAuth
+4. (Optional) Set an account alias
+
+### Managing Accounts
+
+1. Click the **$(plus)** button in the top-right corner
+2. Click on an account in the logged-in accounts list
+3. Choose an action:
+   - **Set Alias**: Modify account display name
+   - **Relogin**: Update authentication credentials
+   - **Logout**: Remove the account
+
+### Refreshing Usage
+
+Click the **$(refresh)** button in the top-right corner to manually refresh usage data for all accounts
+
+---
+
+## ⚙️ Configuration
+
+Search for `unifyQuota` in VS Code Settings:
+
+### Auto Refresh Configuration
 
 ```json
 {
@@ -103,65 +104,65 @@
 }
 ```
 
-- `enabled`: 是否启用自动刷新（默认: `true`）
-- `intervalMs`: 刷新间隔，单位为毫秒（默认: `60000` = 1 分钟）
+- `enabled`: Enable auto-refresh (default: `true`)
+- `intervalMs`: Refresh interval in milliseconds (default: `60000` = 1 minute)
 
 ---
 
-## ❓ 常见问题
+## ❓ FAQ
 
-**Q: 如何区分多个账号？**  
-A: 为每个账号设置别名（如 "Work"、"Personal"），方便识别。
+**Q: How do I distinguish between multiple accounts?**  
+A: Set aliases for each account (e.g., "Work", "Personal") for easy identification.
 
-**Q: 自动刷新会影响性能吗？**  
-A: 不会。默认每分钟刷新一次，非常轻量，可根据需要在设置中调整间隔。
+**Q: Will auto-refresh affect performance?**  
+A: No. Default refresh is once per minute and very lightweight. Adjust in settings if needed.
 
-**Q: 数据存储在哪里？**  
-A: 所有账号数据都存储在 VS Code 的全局设置中，安全可靠。
+**Q: Where is the data stored?**  
+A: All account data is stored in VS Code's global settings, secure and reliable.
 
-**Q: Panel 中什么时候显示账号标签？**  
-A: 当 Provider 只有一个账号时不显示账号标签，有多个账号时显示别名或 ID。
-
----
-
-## 🎨 界面说明
-
-### 侧边栏面板
-- **Provider 区域**: 显示每个 Provider 的名称
-- **账号区域**:
-  - **单账号**: 不显示账号标签，直接显示用量
-  - **多账号**: 显示每个账号的别名或 ID，以及对应的用量详情
-- **用量信息**:
-  - 进度条: 可视化显示使用百分比
-  - 用量数值: 显示具体使用量（Token 单位为 M）
-  - 重置倒计时: 显示距离重置的剩余时间（如 "4h25m"）
-
-### 工具栏按钮
-- **$(plus) 添加账号**: 打开账号管理菜单
-- **$(refresh) 刷新**: 手动刷新所有账号的用量数据（刷新时显示进度条）
+**Q: When are account labels displayed?**  
+A: Account labels are hidden when a provider has only one account, and shown (alias or ID) when there are multiple accounts.
 
 ---
 
-## 🔧 开发者信息
+## 🎨 Interface Guide
 
-### 从源码安装
+### Sidebar Panel
+- **Provider Section**: Displays each provider's name
+- **Account Section**:
+  - **Single Account**: No account label, shows usage directly
+  - **Multiple Accounts**: Shows each account's alias or ID with corresponding usage details
+- **Usage Information**:
+  - Progress Bar: Visual percentage display
+  - Usage Values: Specific usage amounts (Token unit: M)
+  - Reset Countdown: Time remaining until reset (e.g., "4h25m")
+
+### Toolbar Buttons
+- **$(plus) Add Account**: Open account management menu
+- **$(refresh) Refresh**: Manually refresh all account usage data (shows progress bar during refresh)
+
+---
+
+## 🔧 Developer Information
+
+### Install from Source
 
 ```bash
-git clone https://github.com/yourusername/unify-quota-monitor.git
-cd unify-quota-monitor
+git clone https://github.com/mossgowild/vscode-unify-quota-monitor.git
+cd vscode-unify-quota-monitor
 npm install
 npm run compile
 code .
 ```
 
-### 可用命令
+### Available Commands
 
-- `unifyQuota.manageAccounts`: 打开账号管理菜单
-- `unifyQuota.refresh`: 刷新用量数据
+- `unifyQuota.manageAccounts`: Open account management menu
+- `unifyQuota.refresh`: Refresh usage data
 
-### 配置项说明
+### Configuration Fields
 
-**unifyQuota.accounts** (由扩展自动管理，无需手动编辑)
+**unifyQuota.accounts** (Auto-managed by extension, no manual editing needed)
 ```json
 [
   {
@@ -175,22 +176,26 @@ code .
 
 ---
 
-## 🤝 贡献
+## 🤝 Contributing
 
-欢迎提交 Issue 和 Pull Request！
+Issues and Pull Requests are welcome!
 
-## 📄 许可证
+## 📄 License
 
 [MIT](LICENSE)
 
 ---
 
-## 📝 更新日志
+## 📝 Changelog
 
 ### 0.0.1 (2025-01-23)
-- ✨ 初始版本发布
-- 🎯 支持 OpenAI、智谱 AI、Z.ai、Google Antigravity
-- 👥 多账号支持
-- 🏷️ 账号别名功能
-- 🔄 自动刷新功能
-- 🌍 国际化支持（中英文）
+- ✨ Initial release
+- 🎯 Support for OpenAI, 智谱 AI, Z.ai, Google Antigravity
+- 👥 Multi-account support
+- 🏷️ Account aliases
+- 🔄 Auto-refresh functionality
+- 🌍 Internationalization (English/Chinese)
+
+---
+
+## 🌏 [中文文档](README_ZH.md)
