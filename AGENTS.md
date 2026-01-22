@@ -37,9 +37,11 @@
 ### 2. 认证与存储
 - **Google OAuth**: 使用本地 HTTP 服务器（端口 51121）自动捕获授权码，失败时支持手动粘贴重定向 URL。
 - **OpenAI OAuth**: 支持 OAuth 登录（推荐）和手动 Token 输入。OAuth 流程使用本地端口 1455，支持 PKCE 流程。
+- **智谱 AI (Zhipu AI)**: 专门登录方法 `loginWithZhipu()`，支持 API Key 格式验证（必须以 `sk.` 开头），提供快速跳转到文档获取 Key。
+- **Z.ai**: 专门登录方法 `loginWithZai()`，支持 API Key 格式验证（必须以 `zai_` 开头），提供快速跳转到官网获取 Key。
 - **Settings 存储**: 账号数据存储在 `unifyQuota.accounts` 配置项中（数组格式）。
 - **账号别名**: 支持为账号设置别名，方便识别和管理。
-- **自动刷新 Token**: Google Antigravity 和 OpenAI (OAuth) 支持 Access Token 过期后自动刷新。
+- **自动刷新 Token**: Google Antigravity 和 OpenAI (OAuth) 支持 Access Token 过期后自动刷新（通过 AuthManager 的 `refreshGoogleToken()` 和 `refreshOpenAIToken()` 方法）。
 
 ### 3. 多账号支持
 - 每个 Provider 可以有多个账号
@@ -166,6 +168,10 @@ interface AutoRefreshConfig {
 - ✅ OpenAI OAuth - 支持 ChatGPT Plus/Pro OAuth 登录
 - ✅ Token 自动刷新 - 支持 Google Antigravity 和 OpenAI OAuth Token 自动刷新
 - ✅ VS Code 原生进度条 - 使用 `vscode.window.withProgress` API 显示刷新进度
+- ✅ `AuthManager.loginWithZhipu()` - 智谱 AI 专门登录方法，API Key 格式验证
+- ✅ `AuthManager.loginWithZai()` - Z.ai 专门登录方法，API Key 格式验证
+- ✅ `AuthManager.refreshOpenAIToken()` - OpenAI Token 自动刷新（公开方法）
+- ✅ `AuthManager.refreshGoogleToken()` - Google Token 刷新（公开方法）
 
 ### 修改的内容
 - 📝 `Provider` - `models` 字段改为 `accounts`
@@ -173,5 +179,42 @@ interface AutoRefreshConfig {
 - 📝 `package.json` - 视图名称改为 "Quota"，配置项结构调整；**添加工具栏按钮配置（`menus.view/title`）**
 - 📝 `extension.ts` - 移除 `SecretStore.init`，添加 `manageAccounts` 和 `refresh` 命令，启动 auto-refresh，首次加载自动刷新
 - 📝 `AuthManager.ts` - 使用 `config.ts` 工具函数，添加 setAccountAlias 方法，完整国际化；**更新 Google OAuth 配置，添加 OpenAI OAuth 支持**
-- 📝 `UsageManager.ts` - 添加 auto-refresh，使用 `config.ts` 工具函数，添加并发刷新锁，完整国际化；**更新 Google API 用量获取逻辑，添加 OpenAI Token 刷新逻辑；使用 `vscode.window.withProgress` API 显示刷新进度**
+- 📝 `UsageManager.ts` - 添加 auto-refresh，使用 `config.ts` 工具函数，添加并发刷新锁，完整国际化；**移除 Token 刷新逻辑（重构到 AuthManager），简化 fetchOpenAIUsage 和 fetchGoogleUsage 方法，通过 AuthManager 获取有效的 Token；使用 `vscode.window.withProgress` API 显示刷新进度**
 - 📝 `UsageViewProvider.ts` - 移除账号计数显示，修改账号标签格式，单账号时不显示账号标签；**移除底部按钮，移除自定义进度条，使用 VS Code 原生工具栏按钮和进度条**
+
+## 架构设计原则
+
+### 职责分离 (Separation of Concerns)
+
+项目采用清晰的职责分离设计，确保每个模块专注于自己的核心功能：
+
+#### AuthManager（认证管理器）
+**职责：** 处理所有与认证相关的逻辑
+- ✅ 登录流程（OAuth、API Key）
+- ✅ Token 管理（存储、刷新）
+- ✅ 账号管理（别名、重新登录、退出登录）
+
+**公开方法：**
+- `loginProvider()` - 登录指定 Provider
+- `refreshOpenAIToken()` - 刷新 OpenAI OAuth Token
+- `refreshGoogleToken()` - 刷新 Google OAuth Token
+- `hasAccounts()` - 检查是否有已登录账号
+- `getProviderAccounts()` - 获取 Provider 的所有账号
+
+#### UsageManager（用量管理器）
+**职责：** 负责用量数据的获取和展示
+- ✅ 调用各平台 API 获取用量数据
+- ✅ 管理用量数据的状态和更新
+- ✅ 自动刷新机制
+- ✅ 触发 UI 更新事件
+
+**设计原则：**
+- 不直接处理 Token 刷新逻辑（通过 AuthManager 获取有效 Token）
+- 不保存更新后的认证凭证（由 AuthManager 负责）
+- 专注于数据获取和处理
+
+**好处：**
+1. **单一职责原则**：每个模块职责清晰，易于维护
+2. **易于测试**：可以独立测试认证逻辑和用量获取逻辑
+3. **易于扩展**：新增 Provider 时，只需在对应 Manager 中添加逻辑
+4. **代码复用**：Token 刷新逻辑集中管理，避免重复代码

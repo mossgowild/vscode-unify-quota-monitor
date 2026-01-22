@@ -63,12 +63,10 @@ export class UsageViewProvider implements vscode.WebviewViewProvider {
     private _getHtmlForWebview(webview: vscode.Webview): string {
         const providers = this._usageManager.getProviders();
         const hasAccounts = providers.some(p => p.accounts && Array.isArray(p.accounts) && p.accounts.length > 0);
-        const hasStoredAccounts = this._usageManager.hasStoredAccounts();
         const locale = vscode.env.language || 'en';
         
         // 如果是初始加载中且有存储的账号，不显示 empty state
         const isLoading = this._isRefreshing || !this._hasLoadedOnce;
-        const shouldShowEmpty = !hasAccounts && !isLoading && !hasStoredAccounts;
 
         return `<!DOCTYPE html>
         <html lang="${locale}">

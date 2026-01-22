@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { Provider, UsageCategory, Account, ProviderId, StoredAccount } from '../types';
 import { AuthManager } from './AuthManager';
-import { getAccountsByProvider, getAutoRefreshConfig, saveAccount } from '../utils/config';
+import { getAccountsByProvider, getAutoRefreshConfig } from '../utils/config';
 import { getProviderDefinitions } from '../utils/providers';
 
 /**
@@ -172,13 +172,11 @@ export class UsageManager {
      */
     private async fetchOpenAIUsage(account: StoredAccount, locale: string): Promise<UsageCategory[]> {
         let token = account.credential;
-        let refreshToken = '';
-        
+
         try {
-            const json = JSON.parse(account.credential);
+            const json = JSON.parse(account.credential) as { accessToken?: string };
             if (json.accessToken) {
                 token = json.accessToken;
-                refreshToken = json.refreshToken;
             }
         } catch (e) {
             // Not a JSON, treat as raw token
@@ -193,45 +191,11 @@ export class UsageManager {
         });
 
         // 尝试刷新 Token
-        if (response.status === 401 && refreshToken) {
-            try {
-                const params = new URLSearchParams();
-                params.set('grant_type', 'refresh_token');
-                params.set('refresh_token', refreshToken);
-                params.set('client_id', 'app_EMoamEEZ73f0CkXaXp7hrann');
-
-                const refreshHeaders = new Headers();
-                refreshHeaders.set('Content-Type', 'application/x-www-form-urlencoded');
-
-                const refreshResponse = await fetch('https://auth.openai.com/oauth/token', {
-                    method: 'POST',
-                    headers: refreshHeaders,
-                    body: params.toString()
-                });
-
-                if (refreshResponse.ok) {
-                    const newData = await refreshResponse.json() as any;
-                    token = newData.access_token;
-                    
-                    // 更新存储
-                    const newCredential = JSON.stringify({
-                        accessToken: newData.access_token,
-                        refreshToken: newData.refresh_token || refreshToken,
-                        expiresIn: newData.expires_in,
-                        tokenType: newData.token_type
-                    });
-                    
-                    await saveAccount({
-                        ...account,
-                        credential: newCredential
-                    });
-
-                    // 重试请求
-                    headers.set('Authorization', `Bearer ${token}`);
-                    response = await fetch('https://chatgpt.com/backend-api/wham/usage', { headers });
-                }
-            } catch (err) {
-                console.error('OpenAI Token Refresh Failed:', err);
+        if (response.status === 401) {
+            const newToken = await this.authManager.refreshOpenAIToken(account);
+            if (newToken) {
+                headers.set('Authorization', `Bearer ${newToken}`);
+                response = await fetch('https://chatgpt.com/backend-api/wham/usage', { headers });
             }
         }
 
@@ -333,38 +297,18 @@ export class UsageManager {
      * 获取 Google Antigravity 用量
      */
     private async fetchGoogleUsage(refreshToken: string): Promise<UsageCategory[]> {
-        // 刷新 Access Token
-        const refreshParams = new URLSearchParams();
-        refreshParams.set('client_id', '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com');
-        refreshParams.set('client_secret', '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');
-        refreshParams.set('refresh_token', refreshToken);
-        refreshParams.set('grant_type', 'refresh_token');
-
-        const headers1 = new Headers();
-        headers1.set('Content-Type', 'application/x-www-form-urlencoded');
-
-        const refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
-            method: 'POST',
-            headers: headers1,
-            body: refreshParams.toString()
-        });
-
-        if (!refreshResponse.ok) {
-            throw new Error('Google token refresh failed');
-        }
-
-        const tokenData = await refreshResponse.json() as any;
-        const accessToken = tokenData.access_token;
+        // 使用 AuthManager 刷新 Access Token
+        const accessToken = await this.authManager.refreshGoogleToken(refreshToken);
 
         // 获取配额信息
-        const headers2 = new Headers();
-        headers2.set('Content-Type', 'application/json');
-        headers2.set('Authorization', `Bearer ${accessToken}`);
-        headers2.set('User-Agent', 'antigravity/1.11.9');
+        const headers = new Headers();
+        headers.set('Content-Type', 'application/json');
+        headers.set('Authorization', `Bearer ${accessToken}`);
+        headers.set('User-Agent', 'antigravity/1.11.9');
 
         const quotaResponse = await fetch('https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels', {
             method: 'POST',
-            headers: headers2,
+            headers,
             body: JSON.stringify({ project: 'rising-fact-p41fc' })
         });
 

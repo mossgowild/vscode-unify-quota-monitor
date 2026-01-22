@@ -305,6 +305,18 @@ export class AuthManager {
             }
         }
 
+        // Zhipu AI 特殊处理
+        if (providerId === 'zhipu') {
+            await this.loginWithZhipu(accountId);
+            return;
+        }
+
+        // Z.ai 特殊处理
+        if (providerId === 'zai') {
+            await this.loginWithZai(accountId);
+            return;
+        }
+
         const loginTo = locale === 'zh-cn' ? '登录到' : 'Login to';
         const enterCredential = locale === 'zh-cn'
             ? `输入 ${providerDef.name} 的认证凭证`
@@ -657,6 +669,218 @@ export class AuthManager {
         const verifier = this.generateRandomString(43);
         const challenge = crypto.createHash('sha256').update(verifier).digest('base64url');
         return { verifier, challenge };
+    }
+
+    /**
+     * Zhipu AI 登录流程
+     */
+    private async loginWithZhipu(existingAccountId?: string): Promise<void> {
+        const locale = vscode.env.language;
+        const providerName = locale === 'zh-cn' ? '智谱 AI' : 'Zhipu AI';
+        const helpUrl = 'https://open.bigmodel.cn/usercenter/apikeys';
+        
+        const enterKey = locale === 'zh-cn'
+            ? `输入 ${providerName} API Key`
+            : `Enter ${providerName} API Key`;
+        const keyPrompt = locale === 'zh-cn'
+            ? '格式: sk.xxxxxxxxx (以 sk. 开头)'
+            : 'Format: sk.xxxxxxxxx (starts with sk.)';
+        const openDocs = locale === 'zh-cn' ? '打开文档获取 Key' : 'Open docs to get Key';
+        const loginSuccess = locale === 'zh-cn'
+            ? `已成功登录到 ${providerName}`
+            : `Successfully logged in to ${providerName}`;
+
+        // 提供打开文档的选项
+        const openDocsAction = await vscode.window.showInformationMessage(
+            `${providerName} API Key`,
+            openDocs
+        );
+        
+        if (openDocsAction === openDocs) {
+            await vscode.env.openExternal(vscode.Uri.parse(helpUrl));
+        }
+
+        const apiKey = await vscode.window.showInputBox({
+            title: enterKey,
+            prompt: keyPrompt,
+            password: true,
+            ignoreFocusOut: true,
+            validateInput: (value: string) => {
+                if (!value || value.trim() === '') {
+                    return locale === 'zh-cn' ? 'API Key 不能为空' : 'API Key cannot be empty';
+                }
+                if (!value.startsWith('sk.')) {
+                    return locale === 'zh-cn' ? 'API Key 格式不正确，应以 sk. 开头' : 'Invalid API Key format, should start with sk.';
+                }
+                return null;
+            }
+        });
+
+        if (!apiKey) {
+            return;
+        }
+
+        const accountId = existingAccountId || generateAccountId('zhipu');
+        const account: StoredAccount = {
+            id: accountId,
+            providerId: 'zhipu',
+            credential: apiKey
+        };
+
+        await this.saveAccountWithAlias(account, providerName, loginSuccess);
+    }
+
+    /**
+     * Z.ai 登录流程
+     */
+    private async loginWithZai(existingAccountId?: string): Promise<void> {
+        const locale = vscode.env.language;
+        const providerName = 'Z.ai';
+        const helpUrl = 'https://zai.sh/';
+        
+        const enterKey = locale === 'zh-cn'
+            ? `输入 ${providerName} API Key`
+            : `Enter ${providerName} API Key`;
+        const keyPrompt = locale === 'zh-cn'
+            ? '格式: zai_xxxxxxxxx (以 zai_ 开头)'
+            : 'Format: zai_xxxxxxxxx (starts with zai_)';
+        const openDocs = locale === 'zh-cn' ? '打开官网获取 Key' : 'Open website to get Key';
+        const loginSuccess = locale === 'zh-cn'
+            ? `已成功登录到 ${providerName}`
+            : `Successfully logged in to ${providerName}`;
+
+        // 提供打开官网的选项
+        const openDocsAction = await vscode.window.showInformationMessage(
+            `${providerName} API Key`,
+            openDocs
+        );
+        
+        if (openDocsAction === openDocs) {
+            await vscode.env.openExternal(vscode.Uri.parse(helpUrl));
+        }
+
+        const apiKey = await vscode.window.showInputBox({
+            title: enterKey,
+            prompt: keyPrompt,
+            password: true,
+            ignoreFocusOut: true,
+            validateInput: (value: string) => {
+                if (!value || value.trim() === '') {
+                    return locale === 'zh-cn' ? 'API Key 不能为空' : 'API Key cannot be empty';
+                }
+                if (!value.startsWith('zai_')) {
+                    return locale === 'zh-cn' ? 'API Key 格式不正确，应以 zai_ 开头' : 'Invalid API Key format, should start with zai_';
+                }
+                return null;
+            }
+        });
+
+        if (!apiKey) {
+            return;
+        }
+
+        const accountId = existingAccountId || generateAccountId('zai');
+        const account: StoredAccount = {
+            id: accountId,
+            providerId: 'zai',
+            credential: apiKey
+        };
+
+        await this.saveAccountWithAlias(account, providerName, loginSuccess);
+    }
+
+    /**
+     * 刷新 OpenAI Token
+     * @param account 账号信息
+     * @returns 新的 Access Token，如果刷新失败返回 null
+     */
+    public async refreshOpenAIToken(account: StoredAccount): Promise<string | null> {
+        let refreshToken = '';
+
+        try {
+            const json = JSON.parse(account.credential) as { accessToken?: string; refreshToken?: string };
+            if (json.refreshToken) {
+                refreshToken = json.refreshToken;
+            }
+        } catch (e) {
+            // Not a JSON, no refresh token available
+            return null;
+        }
+
+        if (!refreshToken) {
+            return null;
+        }
+
+        try {
+            const params = new URLSearchParams();
+            params.set('grant_type', 'refresh_token');
+            params.set('refresh_token', refreshToken);
+            params.set('client_id', this.openaiClientId);
+
+            const headers = new Headers();
+            headers.set('Content-Type', 'application/x-www-form-urlencoded');
+
+            const response = await fetch(`${this.openaiIssuer}/oauth/token`, {
+                method: 'POST',
+                headers,
+                body: params.toString()
+            });
+
+            if (!response.ok) {
+                return null;
+            }
+
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            const newData = await response.json() as any;
+
+            // 更新存储的凭证
+            const newCredential = JSON.stringify({
+                accessToken: newData.access_token,
+                refreshToken: newData.refresh_token || refreshToken,
+                expiresIn: newData.expires_in,
+                tokenType: newData.token_type
+            });
+
+            await saveAccount({
+                ...account,
+                credential: newCredential
+            });
+
+            return newData.access_token;
+        } catch (err) {
+            console.error('OpenAI Token Refresh Failed:', err);
+            return null;
+        }
+    }
+
+    /**
+     * 刷新 Google Token
+     * @param refreshToken Refresh Token
+     * @returns 新的 Access Token，如果刷新失败抛出错误
+     */
+    public async refreshGoogleToken(refreshToken: string): Promise<string> {
+        const params = new URLSearchParams();
+        params.set('client_id', this.googleClientId);
+        params.set('client_secret', this.googleClientSecret);
+        params.set('refresh_token', refreshToken);
+        params.set('grant_type', 'refresh_token');
+
+        const headers = new Headers();
+        headers.set('Content-Type', 'application/x-www-form-urlencoded');
+
+        const response = await fetch(this.googleTokenUrl, {
+            method: 'POST',
+            headers,
+            body: params.toString()
+        });
+
+        if (!response.ok) {
+            throw new Error('Google token refresh failed');
+        }
+
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        const tokenData = await response.json() as { access_token: string };
+        return tokenData.access_token;
     }
 
     /**
