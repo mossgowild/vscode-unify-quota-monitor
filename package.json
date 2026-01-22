@@ -3,6 +3,16 @@
   "displayName": "Unify Quota Monitor",
   "description": "Monitor AI provider usage quotas in a beautiful panel view",
   "version": "0.0.1",
+  "publisher": "mossgowild",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mossgowild/vscode-unify-quota-monitor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mossgowild/vscode-unify-quota-monitor/issues"
+  },
+  "homepage": "https://github.com/mossgowild/vscode-unify-quota-monitor#readme",
   "engines": {
     "vscode": "^1.85.0"
   },
