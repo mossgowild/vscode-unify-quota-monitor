@@ -1,10 +1,11 @@
-# Unify Quota Monitor
+# 统一配额监控 (Unify Quota Monitor)
 
 > 一个简洁美观的 VS Code 扩展，实时监控多个 AI Provider 的配额使用情况
 
-![Preview](images/image.png)
+![Preview](images/image1.png)
+![Preview](images/image2.png)
 
-## ✨ 为什么使用 Unify Quota Monitor？
+## ✨ 为什么使用统一配额监控？
 
 在使用多个 AI 服务时，频繁切换各平台查看配额很麻烦。这个扩展将所有用量信息集中在一个侧边栏面板中，让您一目了然地掌握所有账号的配额使用情况。
 
@@ -18,7 +19,7 @@
 
 ### 添加第一个账号
 
-1. 点击侧边栏的 **Quota** 图标
+1. 点击侧边栏的 **配额** 图标
 2. 点击右上角的 **$(plus)** 按钮
 3. 选择要添加的 Provider
 4. 根据提示完成认证
@@ -51,7 +52,7 @@
 - 单账号时不显示标签，多账号时清晰展示
 
 ### 🔄 自动刷新
-- 默认每分钟自动刷新用量数据
+- 默认每 60 秒自动刷新用量数据
 - 首次加载自动显示，无需手动操作
 - 可在设置中自定义刷新间隔或关闭自动刷新
 
@@ -65,10 +66,10 @@
 
 ### 添加账号
 
-1. 点击侧边栏的 **Quota** 图标
+1. 点击侧边栏的 **配额** 图标
 2. 点击右上角的 **$(plus)** 按钮
 3. 选择 Provider：
-   - **OpenAI**: 输入 Access Token (JWT)
+   - **OpenAI**: 输入 Access Token (JWT) 或通过 OAuth 登录
    - **智谱 AI / Z.ai**: 输入 API Key
    - **Google Antigravity**: 通过浏览器进行 OAuth 认证
 4. （可选）为账号设置别名
@@ -90,13 +91,13 @@
 
 ## ⚙️ 配置选项
 
-在 VS Code 设置中搜索 `unifyQuota`：
+在 VS Code 设置中搜索 `unifyQuotaMonitor`：
 
 ### 自动刷新配置
 
 ```json
 {
-  "unifyQuota.autoRefresh": {
+  "unifyQuotaMonitor.autoRefresh": {
     "enabled": true,
     "intervalMs": 60000
   }
@@ -150,18 +151,18 @@ A: 当 Provider 只有一个账号时不显示账号标签，有多个账号时�
 git clone https://github.com/mossgowild/vscode-unify-quota-monitor.git
 cd vscode-unify-quota-monitor
 npm install
-npm run compile
+npm run build
 code .
 ```
 
 ### 可用命令
 
-- `unifyQuota.manageAccounts`: 打开账号管理菜单
-- `unifyQuota.refresh`: 刷新用量数据
+- `unifyQuotaMonitor.manageAccounts`: 打开账号管理菜单
+- `unifyQuotaMonitor.refresh`: 刷新用量数据
 
 ### 配置项说明
 
-**unifyQuota.accounts** (由扩展自动管理，无需手动编辑)
+**unifyQuotaMonitor.accounts** (由扩展自动管理，无需手动编辑)
 ```json
 [
   {

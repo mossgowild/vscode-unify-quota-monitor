@@ -1,35 +1,27 @@
-import * as vscode from 'vscode';
-import { AuthManager } from './managers/auth-manager';
-import { UsageManager } from './managers/usage-manager';
-import { UsageViewProvider } from './ui/usage-view-provider';
+import { defineExtension, defineLogger, useCommand } from 'reactive-vscode'
+import { useAuth } from './composables/use-auth'
+import { useUsage, injectTokenRefreshers } from './composables/use-usage'
+import { useView } from './composables/use-view'
 
-export function activate(context: vscode.ExtensionContext) {
-    console.log('Unify Quota Monitor is now active!');
+const logger = defineLogger('Unify Quota Monitor')
 
-    const authManager = new AuthManager();
-    const usageManager = new UsageManager(authManager);
-    const viewProvider = new UsageViewProvider(context.extensionUri, usageManager);
+export = defineExtension(() => {
+  logger.info('Extension Activated')
 
-    authManager.setUsageManager(usageManager);
+  const auth = useAuth()
+  injectTokenRefreshers(auth.refreshGoogleToken, auth.refreshOpenAIToken)
 
-    usageManager.startAutoRefresh();
+  const usage = useUsage()
+  useView()
 
-    usageManager.refresh();
+  useCommand('unifyQuotaMonitor.manageAccounts', () => auth.showAccountMenu())
+  useCommand('unifyQuotaMonitor.refresh', () => usage.refresh())
 
-    context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider('unifyQuota.usageView', viewProvider),
-        vscode.commands.registerCommand('unifyQuota.manageAccounts', async () => {
-            await authManager.showAccountMenu();
-        }),
-        vscode.commands.registerCommand('unifyQuota.refresh', async () => {
-            await usageManager.refresh();
-        }),
-        {
-            dispose: () => usageManager.stopAutoRefresh()
-        }
-    );
-}
+  usage.startAutoRefresh()
+  usage.refresh()
 
-export function deactivate() {
-    console.log('Unify Quota Monitor is deactivated.');
-}
+  return () => {
+    usage.stopAutoRefresh()
+    logger.info('Extension Deactivated')
+  }
+})

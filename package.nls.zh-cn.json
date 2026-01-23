@@ -1,0 +1,18 @@
+{
+  "displayName": "统一配额监控",
+  "description": "在精美的面板视图中监控 AI 服务商的用量配额",
+  "configuration.title": "配额",
+  "configuration.accounts.markdownDescription": "账号配置（由扩展自动管理）",
+  "configuration.accounts.id.markdownDescription": "账号唯一标识",
+  "configuration.accounts.providerId.markdownDescription": "提供商 ID (openai, google, zhipu, zai)",
+  "configuration.accounts.alias.markdownDescription": "可选的账号别名，方便识别",
+  "configuration.accounts.credential.markdownDescription": "认证凭证（令牌或 JSON）",
+  "configuration.autoRefresh.markdownDescription": "自动刷新配置",
+  "configuration.autoRefresh.enabled.markdownDescription": "启用自动刷新",
+  "configuration.autoRefresh.intervalMs.markdownDescription": "刷新间隔（毫秒，默认：60000）",
+  "command.manageAccounts.title": "统一配额监控: 管理账号",
+  "command.refresh.title": "统一配额监控: 刷新",
+  "viewsContainers.activitybar.title": "配额",
+  "views.usageView.name": "配额",
+  "views.usageView.contextualTitle": "配额"
+}

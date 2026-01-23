@@ -2,7 +2,8 @@
 
 > A beautiful VS Code extension to monitor usage quotas for multiple AI providers in real-time
 
-![Preview](images/image.png)
+![Preview](images/image1.png)
+![Preview](images/image2.png)
 
 ## ✨ Why Unify Quota Monitor?
 
@@ -69,7 +70,7 @@ That's it! You can now monitor your quota usage in real-time.
 1. Click the **Quota** icon in the sidebar
 2. Click the **$(plus)** button in the top-right corner
 3. Select a Provider:
-   - **OpenAI**: Enter Access Token (JWT)
+   - **OpenAI**: Enter Access Token (JWT) or login via OAuth
    - **Zhipu AI / Z.ai**: Enter API Key
    - **Google Antigravity**: Authenticate via browser OAuth
 4. (Optional) Set an account alias
@@ -91,13 +92,13 @@ Click the **$(refresh)** button in the top-right corner to manually refresh usag
 
 ## ⚙️ Configuration
 
-Search for `unifyQuota` in VS Code Settings:
+Search for `unifyQuotaMonitor` in VS Code Settings:
 
 ### Auto Refresh Configuration
 
 ```json
 {
-  "unifyQuota.autoRefresh": {
+  "unifyQuotaMonitor.autoRefresh": {
     "enabled": true,
     "intervalMs": 60000
   }
@@ -151,18 +152,18 @@ A: Account labels are hidden when a provider has only one account, and shown (al
 git clone https://github.com/mossgowild/vscode-unify-quota-monitor.git
 cd vscode-unify-quota-monitor
 npm install
-npm run compile
+npm run build
 code .
 ```
 
 ### Available Commands
 
-- `unifyQuota.manageAccounts`: Open account management menu
-- `unifyQuota.refresh`: Refresh usage data
+- `unifyQuotaMonitor.manageAccounts`: Open account management menu
+- `unifyQuotaMonitor.refresh`: Refresh usage data
 
 ### Configuration Fields
 
-**unifyQuota.accounts** (Auto-managed by extension, no manual editing needed)
+**unifyQuotaMonitor.accounts** (Auto-managed by extension, no manual editing needed)
 ```json
 [
   {

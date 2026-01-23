@@ -1,9 +1,11 @@
 {
-  "name": "unify-quota-monitor",
-  "displayName": "Unify Quota Monitor",
-  "description": "Monitor AI provider usage quotas in a beautiful panel view",
-  "version": "0.0.1",
   "publisher": "mossgowild",
+  "name": "unify-quota-monitor",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -13,62 +15,67 @@
     "url": "https://github.com/mossgowild/vscode-unify-quota-monitor/issues"
   },
   "homepage": "https://github.com/mossgowild/vscode-unify-quota-monitor#readme",
-  "engines": {
-    "vscode": "^1.85.0"
-  },
   "categories": [
     "Other"
   ],
+  "main": "./dist/extension.cjs",
+  "l10n": "./l10n",
+  "engines": {
+    "vscode": "^1.99.0"
+  },
   "activationEvents": [
     "onStartupFinished"
   ],
-  "main": "./out/extension.js",
   "contributes": {
     "configuration": {
-      "title": "Quota",
+      "title": "%configuration.title%",
       "properties": {
-        "unifyQuota.accounts": {
+        "unifyQuotaMonitor.accounts": {
           "type": "array",
           "default": [],
-          "markdownDescription": "Account configuration (managed by extension) / 账号配置（由扩展自动管理）",
+          "markdownDescription": "%configuration.accounts.markdownDescription%",
           "items": {
             "type": "object",
             "properties": {
               "id": {
                 "type": "string",
-                "markdownDescription": "Unique account identifier / 账号唯一标识"
+                "markdownDescription": "%configuration.accounts.id.markdownDescription%"
               },
               "providerId": {
                 "type": "string",
-                "markdownDescription": "Provider ID (openai, google, zhipu, zai) / 提供商 ID"
+                "markdownDescription": "%configuration.accounts.providerId.markdownDescription%"
               },
               "alias": {
                 "type": "string",
-                "markdownDescription": "Optional account alias for easy identification / 可选的账号别名，方便识别"
+                "markdownDescription": "%configuration.accounts.alias.markdownDescription%"
               },
               "credential": {
                 "type": "string",
-                "markdownDescription": "Authentication credential (token or JSON) / 认证凭证（令牌或 JSON）"
+                "markdownDescription": "%configuration.accounts.credential.markdownDescription%"
               }
             },
-            "required": ["id", "providerId", "credential"]
+            "required": [
+              "id",
+              "providerId",
+              "credential"
+            ]
           }
         },
-        "unifyQuota.autoRefresh": {
+        "unifyQuotaMonitor.autoRefresh": {
           "type": "object",
           "default": {
             "enabled": true,
             "intervalMs": 60000
           },
-          "markdownDescription": "Auto-refresh configuration / 自动刷新配置",
+          "markdownDescription": "%configuration.autoRefresh.markdownDescription%",
           "properties": {
             "enabled": {
               "type": "boolean",
-              "markdownDescription": "Enable auto-refresh / 启用自动刷新"
+              "markdownDescription": "%configuration.autoRefresh.enabled.markdownDescription%"
             },
             "intervalMs": {
               "type": "number",
-              "markdownDescription": "Refresh interval in milliseconds (default: 60000) / 刷新间隔（毫秒，默认：60000）"
+              "markdownDescription": "%configuration.autoRefresh.intervalMs.markdownDescription%"
             }
           }
         }
@@ -76,63 +83,65 @@
     },
     "commands": [
       {
-        "command": "unifyQuota.manageAccounts",
-        "title": "Unify Quota Monitor: Manage Accounts",
+        "command": "unifyQuotaMonitor.manageAccounts",
+        "title": "%command.manageAccounts.title%",
         "icon": "$(plus)"
       },
       {
-        "command": "unifyQuota.refresh",
-        "title": "Unify Quota Monitor: Refresh",
+        "command": "unifyQuotaMonitor.refresh",
+        "title": "%command.refresh.title%",
         "icon": "$(refresh)"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "unifyQuota-sidebar",
-          "title": "Quota",
+          "id": "unifyQuotaMonitor-sidebar",
+          "title": "%viewsContainers.activitybar.title%",
           "icon": "$(dashboard)"
         }
       ]
     },
     "views": {
-      "unifyQuota-sidebar": [
+      "unifyQuotaMonitor-sidebar": [
         {
           "type": "webview",
-          "id": "unifyQuota.usageView",
-          "name": "Quota",
+          "id": "unifyQuotaMonitor.usageView",
+          "name": "%views.usageView.name%",
           "icon": "$(dashboard)",
-          "contextualTitle": "Quota"
+          "contextualTitle": "%views.usageView.contextualTitle%"
         }
       ]
     },
     "menus": {
       "view/title": [
         {
-          "command": "unifyQuota.refresh",
-          "when": "view == unifyQuota.usageView",
+          "command": "unifyQuotaMonitor.refresh",
+          "when": "view == unifyQuotaMonitor.usageView",
           "group": "navigation"
         },
         {
-          "command": "unifyQuota.manageAccounts",
-          "when": "view == unifyQuota.usageView",
+          "command": "unifyQuotaMonitor.manageAccounts",
+          "when": "view == unifyQuotaMonitor.usageView",
           "group": "navigation"
         }
       ]
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "lint": "eslint src --ext ts"
+    "build": "tsdown --env.NODE_ENV production",
+    "dev": "tsdown --watch ./src --env.NODE_ENV development",
+    "typecheck": "tsc --noEmit",
+    "vscode:prepublish": "npm run build"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0",
-    "@types/node": "18.x",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.99.0",
+    "reactive-vscode": "^1.0.0-beta.2",
+    "tsdown": "^0.15.11",
+    "typescript": "^5.9.3",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
-    "eslint": "^8.56.0",
-    "typescript": "^5.3.3"
+    "eslint": "^8.56.0"
   }
 }

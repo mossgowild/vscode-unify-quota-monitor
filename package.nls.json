@@ -1,0 +1,18 @@
+{
+  "displayName": "Unify Quota Monitor",
+  "description": "Monitor AI provider usage quotas in a beautiful panel view",
+  "configuration.title": "Quota",
+  "configuration.accounts.markdownDescription": "Account configuration (managed by extension)",
+  "configuration.accounts.id.markdownDescription": "Unique account identifier",
+  "configuration.accounts.providerId.markdownDescription": "Provider ID (openai, google, zhipu, zai)",
+  "configuration.accounts.alias.markdownDescription": "Optional account alias for easy identification",
+  "configuration.accounts.credential.markdownDescription": "Authentication credential (token or JSON)",
+  "configuration.autoRefresh.markdownDescription": "Auto-refresh configuration",
+  "configuration.autoRefresh.enabled.markdownDescription": "Enable auto-refresh",
+  "configuration.autoRefresh.intervalMs.markdownDescription": "Refresh interval in milliseconds (default: 60000)",
+  "command.manageAccounts.title": "Unify Quota Monitor: Manage Accounts",
+  "command.refresh.title": "Unify Quota Monitor: Refresh",
+  "viewsContainers.activitybar.title": "Quota",
+  "views.usageView.name": "Quota",
+  "views.usageView.contextualTitle": "Quota"
+}
