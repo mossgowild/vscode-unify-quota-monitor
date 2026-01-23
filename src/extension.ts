@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { AuthManager } from './managers/AuthManager';
-import { UsageManager } from './managers/UsageManager';
-import { UsageViewProvider } from './ui/UsageViewProvider';
+import { AuthManager } from './managers/auth-manager';
+import { UsageManager } from './managers/usage-manager';
+import { UsageViewProvider } from './ui/usage-view-provider';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Unify Quota Monitor is now active!');

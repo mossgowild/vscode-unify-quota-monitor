@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { Provider, UsageCategory, Account, ProviderId, StoredAccount } from '../types';
-import { AuthManager } from './AuthManager';
+import { AuthManager } from './auth-manager';
 import { getAccountsByProvider, getAutoRefreshConfig } from '../utils/config';
 import { getProviderDefinitions } from '../utils/providers';
 

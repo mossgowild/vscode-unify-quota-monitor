@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as http from 'http';
 import * as crypto from 'crypto';
-import { UsageManager } from './UsageManager';
+import { UsageManager } from './usage-manager';
 import { ProviderId, StoredAccount } from '../types';
 import { getProviderDefinitions, getProviderDefinition } from '../utils/providers';
 import {

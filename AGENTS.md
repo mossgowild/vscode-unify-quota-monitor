@@ -6,10 +6,10 @@
 ## 目录结构
 - `src/extension.ts`: 插件入口，初始化 Managers 并注册全局命令。
 - `src/managers/`: 核心业务逻辑
-    - `AuthManager.ts`: 负责登录认证。支持 Google OAuth 自动化流程、手动 Token 输入。
-    - `UsageManager.ts`: 负责调用各平台真实 API 获取用量数据（OpenAI JWT, Google Cloud Quota 等），并支持自动刷新。
+    - `auth-manager.ts`: 负责登录认证。支持 Google OAuth 自动化流程、手动 Token 输入。
+    - `usage-manager.ts`: 负责调用各平台真实 API 获取用量数据（OpenAI JWT, Google Cloud Quota 等），并支持自动刷新。
 - `src/ui/`: UI 组件
-    - `UsageViewProvider.ts`: 侧边栏 Webview Panel，展示所有 Provider 的用量详情。
+    - `usage-view-provider.ts`: 侧边栏 Webview Panel，展示所有 Provider 的用量详情。
 - `src/utils/`: 工具函数
     - `config.ts`: 配置读写工具函数，直接使用 `vscode.workspace.getConfiguration` 读写配置。
     - `providers.ts`: 统一管理 Provider 的静态元数据定义。
@@ -178,9 +178,9 @@ interface AutoRefreshConfig {
 - 📝 `Provider.auth` - 增加 `loggedIn` 字段（用于初始化）
 - 📝 `package.json` - 视图名称改为 "Quota"，配置项结构调整；**添加工具栏按钮配置（`menus.view/title`）**
 - 📝 `extension.ts` - 移除 `SecretStore.init`，添加 `manageAccounts` 和 `refresh` 命令，启动 auto-refresh，首次加载自动刷新
-- 📝 `AuthManager.ts` - 使用 `config.ts` 工具函数，添加 setAccountAlias 方法，完整国际化；**更新 Google OAuth 配置，添加 OpenAI OAuth 支持**
-- 📝 `UsageManager.ts` - 添加 auto-refresh，使用 `config.ts` 工具函数，添加并发刷新锁，完整国际化；**移除 Token 刷新逻辑（重构到 AuthManager），简化 fetchOpenAIUsage 和 fetchGoogleUsage 方法，通过 AuthManager 获取有效的 Token；使用 `vscode.window.withProgress` API 显示刷新进度**
-- 📝 `UsageViewProvider.ts` - 移除账号计数显示，修改账号标签格式，单账号时不显示账号标签；**移除底部按钮，移除自定义进度条，使用 VS Code 原生工具栏按钮和进度条**
+- 📝 `auth-manager.ts` - 使用 `config.ts` 工具函数，添加 setAccountAlias 方法，完整国际化；**更新 Google OAuth 配置，添加 OpenAI OAuth 支持**
+- 📝 `usage-manager.ts` - 添加 auto-refresh，使用 `config.ts` 工具函数，添加并发刷新锁，完整国际化；**移除 Token 刷新逻辑（重构到 AuthManager），简化 fetchOpenAIUsage 和 fetchGoogleUsage 方法，通过 AuthManager 获取有效的 Token；使用 `vscode.window.withProgress` API 显示刷新进度**
+- 📝 `usage-view-provider.ts` - 移除账号计数显示，修改账号标签格式，单账号时不显示账号标签；**移除底部按钮，移除自定义进度条，使用 VS Code 原生工具栏按钮和进度条**
 
 ## 架构设计原则
 

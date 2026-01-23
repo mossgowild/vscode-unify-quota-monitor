@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { UsageManager } from '../managers/UsageManager';
+import { UsageManager } from '../managers/usage-manager';
 import { Provider, Account, UsageCategory } from '../types';
 
 /**
