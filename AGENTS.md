@@ -45,15 +45,32 @@
 - **Reactivity**: 任何配置项 (`accounts`, `autoRefresh`) 的变化都会自动触发数据刷新和 UI 重绘，无需手动调用 `refresh`。
 - **Debounce**: `useUsage` 中实现了防抖逻辑，避免配置频繁变化导致过多请求。
 
-### 2. UI 交互
+### 2. 数据处理与展示逻辑
+- **Reset Time**:
+    - 剩余时间 > 1 小时：仅显示时分 (e.g. `2h 30m`)。
+    - 剩余时间 < 1 小时：显示分秒 (e.g. `59m 30s`)。
+    - 前端定时器 (`setInterval`) 每秒实时更新倒计时。
+- **排序规则**:
+    - Z.ai/Zhipu: Token Limit 类型的配额始终排在 Request Limit 之前。
+    - Google Provider: "Claude Opus 4.5" 优先显示。
+- **UI 样式规范**:
+    - **用量数值**与**Reset 时间**样式统一：字体大小 `0.85em`，颜色 `descriptionForeground`，透明度 `0.8`。
+    - Reset 时间居左对齐。
+    - Request 类型的配额不显示单位后缀 ("requests")。
+
+### 3. UI 交互
 - **侧边栏 Panel**: 使用 Webview View，由 `use-view.ts` 管理。
     - **无闪烁刷新**: 数据刷新时旧数据保留，直到新数据就绪。
-- **账号管理**: 所有管理操作（添加、删除、别名、重登录）均在 `use-view.ts` 中通过 QuickPick 实现，操作结果直接写入配置。
+- **账号管理 QuickPick**:
+    - Label: 显示 Provider 名称 (e.g., "Google Antigravity")。
+    - Description: 显示账号 Alias 或 ID。
+- **认证与存储**:
+    - 数据持久化在 `unifyQuotaMonitor.accounts` 全局配置中。
+    - `ProviderDefinition` 不再包含 `icon` 和 `helpUrl` (已移除未使用的字段)。
 
-### 3. 认证与存储
+### 4. 认证与存储 (底层)
 - **Google OAuth**: 本地端口 51121，自动捕获授权码。
 - **OpenAI OAuth**: 本地端口 1455，支持 PKCE。
-- **存储**: 数据持久化在 `unifyQuotaMonitor.accounts` 全局配置中。
 - **Token 刷新**: 在 `auth-helpers.ts` 中实现，`useUsage` 在 API 调用返回 401 时自动尝试刷新。
 
 ## 开发指南

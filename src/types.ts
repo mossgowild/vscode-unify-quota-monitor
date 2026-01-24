@@ -13,13 +13,11 @@ export interface ProviderAuth {
   required: boolean
   type: 'token' | 'oauth' | 'key'
   placeholder?: string
-  helpUrl?: string
 }
 
 export interface ProviderDefinition {
   id: ProviderId
   name: string
-  icon: string
   auth: ProviderAuth
 }
 

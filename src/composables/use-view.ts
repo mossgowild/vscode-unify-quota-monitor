@@ -102,17 +102,17 @@ export function useView() {
                 justify-content: space-between;
                 align-items: baseline;
                 margin-bottom: 0.3em;
-                font-size: 0.85em;
             }
             
             .usage-name {
                 font-weight: 500;
+                font-size: 0.85em;
             }
             
             .usage-value {
-                font-size: 0.9em;
-                color: var(--vscode-charts-blue);
-                font-weight: 600;
+                font-size: 0.85em;
+                color: var(--vscode-descriptionForeground);
+                opacity: 0.8;
             }
             
             .progress-bar-container {
@@ -138,10 +138,10 @@ export function useView() {
             }
             
             .usage-reset {
-                font-size: 0.75em;
+                font-size: 0.85em;
                 color: var(--vscode-descriptionForeground);
                 opacity: 0.8;
-                text-align: right;
+                text-align: left;
             }
             
             .empty-state {
@@ -210,7 +210,12 @@ export function useView() {
                             const mins = Math.floor((diffMs % 3600000) / 60000);
                             const secs = Math.floor((diffMs % 60000) / 1000);
                             
-                            const timeStr = hours + 'h' + mins + 'm' + secs + 's';
+                            let timeStr = '';
+                            if (hours > 0) {
+                                timeStr = hours + 'h ' + mins + 'm';
+                            } else {
+                                timeStr = mins + 'm ' + secs + 's';
+                            }
                             el.textContent = template.replace('{{TIME}}', timeStr);
                         }
                     });
@@ -301,7 +306,7 @@ export function useView() {
     } else if (usage.limitType === 'token') {
       displayValue = `${(usage.used / 1000000).toFixed(1)}M / ${(usage.total / 1000000).toFixed(1)}M`
     } else {
-      const unit = usage.limitType === 'request' ? ` ${t('requests')}` : ` ${t('credits')}`
+      const unit = usage.limitType === 'request' ? '' : ` ${t('credits')}`
       displayValue = `${usage.used} / ${usage.total}${unit}`
     }
 
@@ -318,7 +323,12 @@ export function useView() {
         const mins = Math.floor((diffMs % 3600000) / 60000)
         const secs = Math.floor((diffMs % 60000) / 1000)
 
-        const timeStr = `${hours}h${mins}m${secs}s`
+        let timeStr = ''
+        if (hours > 0) {
+          timeStr = `${hours}h ${mins}m`
+        } else {
+          timeStr = `${mins}m ${secs}s`
+        }
         resetText = resetTemplate.replace('{{TIME}}', timeStr)
 
         const safeTemplate = resetTemplate.replace(/"/g, '&quot;')
@@ -359,8 +369,8 @@ export function useView() {
         const providerDef = getProviderDefinition(account.providerId)
         const accountLabel = account.alias || account.id
         items.push({
-          label: `${providerDef?.name || account.providerId} - ${accountLabel}`,
-          description: '',
+          label: providerDef?.name || account.providerId,
+          description: accountLabel,
           action: 'manageAccount',
           accountId: account.id,
           providerId: account.providerId

@@ -163,6 +163,13 @@ export const useUsage = defineService(() => {
           resetTime: resetDate ? resetDate.toISOString() : undefined,
         })
       }
+
+      // Sort: Token Limit first
+      models.sort((a, b) => {
+        if (a.limitType === 'token' && b.limitType !== 'token') return -1
+        if (a.limitType !== 'token' && b.limitType === 'token') return 1
+        return 0
+      })
     }
 
     return {
@@ -193,10 +200,10 @@ export const useUsage = defineService(() => {
     const data = await quotaResponse.json() as any
     const models: UsageCategory[] = []
     const modelMap = new Map([
+      ['claude-opus-4-5-thinking', 'Claude Opus 4.5'],
       ['gemini-3-pro-high', 'Gemini 3 Pro'],
       ['gemini-3-flash', 'Gemini 3 Flash'],
       ['gemini-3-pro-image', 'Gemini 3 Image'],
-      ['claude-opus-4-5-thinking', 'Claude Opus'],
     ])
 
     for (const [key, label] of modelMap.entries()) {
