@@ -54,9 +54,35 @@
     - Z.ai/Zhipu: Token Limit 类型的配额始终排在 Request Limit 之前。
     - Google Provider: "Claude Opus 4.5" 优先显示。
 - **UI 样式规范**:
-    - **用量数值**与**Reset 时间**样式统一：字体大小 `0.85em`，颜色 `descriptionForeground`，透明度 `0.8`。
-    - Reset 时间居左对齐。
-    - Request 类型的配额不显示单位后缀 ("requests")。
+    - **设计参考**: UI 样式参考 GitHub Copilot Status Bar 的设计规范，确保视觉一致性。
+    - **进度条样式**:
+        - 高度: `4px`
+        - 圆角: `4px`
+        - 边框: `1px solid var(--vscode-gauge-border)`
+        - 背景色: `var(--vscode-gauge-background)` (30% 透明度)
+        - 填充色:
+            - 正常: `var(--vscode-gauge-foreground)`
+            - 警告 (≥75%): `var(--vscode-gauge-warningForeground)`
+            - 错误 (≥90%): `var(--vscode-gauge-errorForeground)`
+        - 上下边距: `2px 0`
+    - **文字样式**:
+        - Provider 标题: 字重 `600`，颜色 `var(--vscode-descriptionForeground)`，下边距 `0.8em`
+        - 用量数值: 字体大小 `0.85em`，颜色 `var(--vscode-descriptionForeground)`，透明度 `0.8`
+        - Reset 时间: 字体大小 `0.85em`，颜色 `var(--vscode-descriptionForeground)`，透明度 `0.8`，居左对齐
+    - **布局与间距**:
+        - Content 内边距: `0.5em 1em` (上下 0.5em，左右 1em)
+        - Provider Section: 上下外边距 `0.6em`，下内边距 `0.8em`，底部分割线 `1px solid var(--vscode-panel-border)`
+        - Account Block: 上外边距 `1.2em`，下外边距 `0.6em` (紧跟 Provider Header 时为 `0.8em`)
+        - Usage Grid: 列宽 `minmax(12em, 1fr)` (使用相对单位)，行间距 `0.2em`，列间距 `1em`
+        - Usage Item: 无内边距 (`padding: 0`)
+    - **容器样式**:
+        - 移除账号块的背景色和边框，使用透明背景（与 Copilot 一致）
+        - 无额外圆角和装饰，保持简洁风格
+    - **响应式设计**:
+        - 使用相对单位 (`em`, `%`) 而非绝对像素 (`px`)，确保在不同字体大小下的一致性
+        - Grid 布局自动适应容器宽度
+    - **主题适配**: 所有颜色使用 VS Code 主题变量，自动适配深色/浅色/高对比度主题
+    - **Request 类型的配额**: 不显示单位后缀 ("requests")。
 
 ### 3. UI 交互
 - **侧边栏 Panel**: 使用 Webview View，由 `use-view.ts` 管理。
@@ -89,3 +115,37 @@
 - **单向数据流**: 严禁下层模块调用上层模块（如 `useUsage` 不可调用 `useView`）。
 - **工具函数分离**: 纯逻辑、无状态的代码应放入 `src/utils/`。
 - **WatchEffect**: 优先使用 `watchEffect` 处理响应式依赖，避免配置 Proxy 对象的深度遍历问题。
+
+## 样式设计历史
+
+### 2026-01-24: GitHub Copilot Status Bar UI 对齐
+- **目标**: 参考 GitHub Copilot Chat 项目的 Status Bar Item UI，统一样式风格
+- **主要变更**:
+    1. **进度条样式升级**:
+       - 圆角从 `2px` 统一为 `4px`
+       - 新增 `1px solid var(--vscode-gauge-border)` 边框
+       - 背景色从 `var(--vscode-scrollbarSlider-background)` 改为 `var(--vscode-gauge-background)`
+       - 填充色从 `charts-*` 变量改为 `gauge-*` 变量 (foreground/warningForeground/errorForeground)
+    2. **文字与布局优化**:
+       - Provider Header 颜色改为 `var(--vscode-descriptionForeground)`，下边距 `0.8em`
+       - 移除 Account Block 背景色和边框，采用透明设计
+       - Provider Section 使用相对单位 `em` (如 `12em` 列宽) 提升响应式表现
+       - Usage Grid 间距从 `0.6em` 增加到 `1em`
+    3. **间距精细化**:
+       - Content 上下内边距 `0.5em`
+       - Provider Section 上外边距 `8px`，下外边距 `8px`，下内边距 `6px`
+       - Account Block 上外边距 `1.2em`（紧跟 Header 时 `0.8em`），下外边距 `0.6em`
+       - 进度条上下边距 `2px`
+- **设计原则**: 简洁、主题感知、响应式、与 Copilot 一致
+
+### 2026-01-24 (后续): 间距优化
+- **目标**: 进一步优化间距，使用相对单位提升一致性
+- **主要变更**:
+    1. **Provider Section 间距调整**:
+       - 上下外边距从 `8px` 改为 `0.6em`（统一使用相对单位）
+       - 下内边距从 `6px` 改为 `0.8em`（更协调的间距比例）
+    2. **Usage Grid 间距精细化**:
+       - 从单一间距 `1em` 改为双值间距 `0.2em 1em`
+       - 行间距 `0.2em` 使垂直方向更紧凑
+       - 列间距 `1em` 保持水平方向的清晰分隔
+- **优化效果**: 提升响应式表现，间距在不同字体大小下保持一致比例

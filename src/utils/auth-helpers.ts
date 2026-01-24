@@ -261,7 +261,7 @@ export async function refreshOpenAIToken(
 }
 
 export async function loginWithGitHub(): Promise<string> {
-  const session = await authentication.getSession('github', ['read:user'], { createIfNone: true })
+  await authentication.getSession('github', ['read:user'], { createIfNone: true })
   return 'vscode-github-session'
 }
 

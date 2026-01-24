@@ -46,15 +46,16 @@ export function useView() {
             .content {
                 flex: 1;
                 overflow-y: auto;
-                padding: 0 1em 1em 1em;
+                padding: 0.5em 1em;
                 display: flex;
                 flex-direction: column;
             }
 
             .provider-section {
-                margin-bottom: 1.2em;
+                margin-top: 0.6em;
+                margin-bottom: 0.6em;
+                padding-bottom: 0.8em;
                 border-bottom: 1px solid var(--vscode-panel-border);
-                padding-bottom: 1em;
             }
             
             .provider-section:last-child {
@@ -66,18 +67,18 @@ export function useView() {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                padding: 0.5em 0;
                 font-weight: 600;
-                font-size: 0.95em;
-                color: var(--vscode-foreground);
-                margin-bottom: 0.5em;
+                color: var(--vscode-descriptionForeground);
+                margin-bottom: 0.8em;
             }
             
             .account-block {
-                margin-bottom: 0.8em;
-                padding: 0.6em;
-                background: var(--vscode-editor-background);
-                border-radius: 3px;
+                margin-top: 1.2em;
+                margin-bottom: 0.6em;
+            }
+            
+            .provider-header + .account-block {
+                margin-top: 0.8em;
             }
             
             .account-label {
@@ -96,12 +97,8 @@ export function useView() {
             
             .usage-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-                gap: 0.6em;
-            }
-            
-            .usage-item {
-                padding: 0.2em 0;
+                grid-template-columns: repeat(auto-fit, minmax(12em, 1fr));
+                gap: 0.2em 1em;
             }
             
             .usage-title {
@@ -124,24 +121,26 @@ export function useView() {
             
             .progress-bar-container {
                 height: 4px;
-                background-color: var(--vscode-scrollbarSlider-background);
-                border-radius: 2px;
+                background-color: var(--vscode-gauge-background);
+                border-radius: 4px;
+                border: 1px solid var(--vscode-gauge-border);
                 overflow: hidden;
-                margin-bottom: 0.2em;
+                margin: 2px 0;
             }
             
             .progress-bar {
                 height: 100%;
-                background-color: var(--vscode-charts-blue);
+                background-color: var(--vscode-gauge-foreground);
+                border-radius: 4px;
                 transition: width 0.2s ease;
             }
             
             .progress-bar.warning {
-                background-color: var(--vscode-charts-yellow);
+                background-color: var(--vscode-gauge-warningForeground);
             }
             
             .progress-bar.danger {
-                background-color: var(--vscode-charts-red);
+                background-color: var(--vscode-gauge-errorForeground);
             }
             
             .usage-reset {
@@ -200,35 +199,62 @@ export function useView() {
             </div>
         </div>
         <script>
-            (function() {
-                function updateTimers() {
-                    const now = new Date();
-                    const elements = document.querySelectorAll('.usage-reset[data-reset-time]');
-                    elements.forEach(el => {
-                        const targetStr = el.getAttribute('data-reset-time');
-                        if (!targetStr) return;
-                        
-                        const target = new Date(targetStr);
-                        const template = el.getAttribute('data-template');
-                        const diffMs = target.getTime() - now.getTime();
-                        
-                        if (diffMs > 0) {
-                            const hours = Math.floor(diffMs / 3600000);
-                            const mins = Math.floor((diffMs % 3600000) / 60000);
-                            const secs = Math.floor((diffMs % 60000) / 1000);
-                            
-                            let timeStr = '';
-                            if (hours > 0) {
-                                timeStr = hours + 'h ' + mins + 'm';
-                            } else {
-                                timeStr = mins + 'm ' + secs + 's';
-                            }
-                            el.textContent = template.replace('{{TIME}}', timeStr);
-                        }
-                    });
+          // 滚动位置恢复逻辑
+          (function() {
+            const content = document.querySelector('.content');
+            // 恢复滚动
+            const scrollInfo = sessionStorage.getItem('quotaMonitorScroll');
+            if (content && scrollInfo) {
+              try {
+                const { top, atBottom } = JSON.parse(scrollInfo);
+                if (atBottom) {
+                  // 刷新前在底部，刷新后也滚到底
+                  content.scrollTop = content.scrollHeight;
+                } else {
+                  content.scrollTop = top;
                 }
-                setInterval(updateTimers, 1000);
-            })();
+              } catch {}
+            }
+            // 监听滚动，保存位置
+            if (content) {
+              content.addEventListener('scroll', function() {
+                const atBottom = Math.abs(content.scrollHeight - content.scrollTop - content.clientHeight) < 2;
+                sessionStorage.setItem('quotaMonitorScroll', JSON.stringify({
+                  top: content.scrollTop,
+                  atBottom
+                }));
+              });
+            }
+            // 定时器逻辑
+            function updateTimers() {
+              const now = new Date();
+              const elements = document.querySelectorAll('.usage-reset[data-reset-time]');
+              elements.forEach(el => {
+                const targetStr = el.getAttribute('data-reset-time');
+                if (!targetStr) return;
+                const target = new Date(targetStr);
+                const template = el.getAttribute('data-template');
+                const diffMs = target.getTime() - now.getTime();
+                if (diffMs > 0) {
+                  const totalHours = Math.floor(diffMs / 3600000);
+                  const days = Math.floor(totalHours / 24);
+                  const hours = totalHours % 24;
+                  const mins = Math.floor((diffMs % 3600000) / 60000);
+                  const secs = Math.floor((diffMs % 60000) / 1000);
+                  let timeStr = '';
+                  if (days > 0) {
+                    timeStr = days + 'd ' + hours + 'h';
+                  } else if (totalHours > 0) {
+                    timeStr = totalHours + 'h ' + mins + 'm';
+                  } else {
+                    timeStr = mins + 'm ' + secs + 's';
+                  }
+                  el.textContent = template.replace('{{TIME}}', timeStr);
+                }
+              });
+            }
+            setInterval(updateTimers, 1000);
+          })();
         </script>
     </body>
     </html>`
@@ -329,14 +355,21 @@ export function useView() {
 
       if (diffMs > 0) {
         const resetTemplate = t('Resets in {time}', { time: '{{TIME}}' })
-        const hours = Math.floor(diffMs / 3600000)
+        const totalHours = Math.floor(diffMs / 3600000)
+        const days = Math.floor(totalHours / 24)
+        const hours = totalHours % 24
         const mins = Math.floor((diffMs % 3600000) / 60000)
         const secs = Math.floor((diffMs % 60000) / 1000)
 
         let timeStr = ''
-        if (hours > 0) {
-          timeStr = `${hours}h ${mins}m`
+        if (days > 0) {
+          // 超过1天：显示日和小时
+          timeStr = `${days}d ${hours}h`
+        } else if (totalHours > 0) {
+          // 1小时-24小时：显示小时和分钟
+          timeStr = `${totalHours}h ${mins}m`
         } else {
+          // 小于1小时：显示分钟和秒
           timeStr = `${mins}m ${secs}s`
         }
         resetText = resetTemplate.replace('{{TIME}}', timeStr)

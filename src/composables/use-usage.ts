@@ -5,7 +5,7 @@ import { getAllProviderDefinitions } from '../providers'
 import { t } from '../i18n'
 import { useAccounts } from './use-accounts'
 import { config, DEFAULT_AUTO_REFRESH } from './use-config'
-import { refreshGoogleToken, refreshOpenAIToken, getGitHubAccessToken, exchangeGitHubTokenForCopilot } from '../utils/auth-helpers'
+import { refreshGoogleToken, refreshOpenAIToken, getGitHubAccessToken } from '../utils/auth-helpers'
 
 export const useUsage = defineService(() => {
   const { getAccountsByProvider } = useAccounts()
@@ -96,7 +96,7 @@ export const useUsage = defineService(() => {
         const used = limit - remaining
         
         models.push({
-          name: 'Copilot Chat',
+          name: 'Premium Request',
           limitType: 'request',
           used: used,
           total: limit,
