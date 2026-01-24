@@ -189,6 +189,32 @@ export function useView() {
                 ${showEmptyState ? renderEmptyState() : renderProviders(providerList, locale)}
             </div>
         </div>
+        <script>
+            (function() {
+                function updateTimers() {
+                    const now = new Date();
+                    const elements = document.querySelectorAll('.usage-reset[data-reset-time]');
+                    elements.forEach(el => {
+                        const targetStr = el.getAttribute('data-reset-time');
+                        if (!targetStr) return;
+                        
+                        const target = new Date(targetStr);
+                        const template = el.getAttribute('data-template');
+                        const diffMs = target.getTime() - now.getTime();
+                        
+                        if (diffMs > 0) {
+                            const hours = Math.floor(diffMs / 3600000);
+                            const mins = Math.floor((diffMs % 3600000) / 60000);
+                            const secs = Math.floor((diffMs % 60000) / 1000);
+                            
+                            const timeStr = hours + 'h' + mins + 'm' + secs + 's';
+                            el.textContent = template.replace('{{TIME}}', timeStr);
+                        }
+                    });
+                }
+                setInterval(updateTimers, 1000);
+            })();
+        </script>
     </body>
     </html>`
   })
@@ -285,17 +311,23 @@ export function useView() {
       const now = new Date()
       const diffMs = date.getTime() - now.getTime()
       let resetText = ''
+
       if (diffMs > 0) {
+        const resetTemplate = t('Resets in {time}', { time: '{{TIME}}' })
         const hours = Math.floor(diffMs / 3600000)
         const mins = Math.floor((diffMs % 3600000) / 60000)
-        resetText = hours > 0
-          ? t('Resets in {hours}h{mins}m', { hours, mins })
-          : t('Resets in {mins}m', { mins })
+        const secs = Math.floor((diffMs % 60000) / 1000)
+
+        const timeStr = `${hours}h${mins}m${secs}s`
+        resetText = resetTemplate.replace('{{TIME}}', timeStr)
+
+        const safeTemplate = resetTemplate.replace(/"/g, '&quot;')
+        resetHtml = `<div class="usage-reset" data-reset-time="${usage.resetTime}" data-template="${safeTemplate}">${resetText}</div>`
       }
       else {
         resetText = t('Resetting...')
+        resetHtml = `<div class="usage-reset">${resetText}</div>`
       }
-      resetHtml = `<div class="usage-reset">${resetText}</div>`
     }
 
     return `
