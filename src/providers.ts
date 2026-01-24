@@ -39,6 +39,15 @@ function getProviderDefinitions(): ProviderDefinition[] {
         placeholder: t('Login via OAuth'),
       },
     },
+    {
+      id: 'github',
+      name: 'GitHub Copilot',
+      auth: {
+        required: true,
+        type: 'oauth',
+        placeholder: t('Login with GitHub'),
+      },
+    },
   ]
 }
 

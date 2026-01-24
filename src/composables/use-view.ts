@@ -5,7 +5,7 @@ import { getAllProviderDefinitions, getProviderDefinition } from '../providers'
 import { t } from '../i18n'
 import { useUsage } from './use-usage'
 import { config } from './use-config'
-import { loginWithGoogle, loginWithOpenAI, loginWithOpenAIToken, loginWithApiKey } from '../utils/auth-helpers'
+import { loginWithGoogle, loginWithOpenAI, loginWithOpenAIToken, loginWithApiKey, loginWithGitHub } from '../utils/auth-helpers'
 
 export function useView() {
   const { providers, hasLoadedOnce } = useUsage()
@@ -85,6 +85,13 @@ export function useView() {
                 color: var(--vscode-descriptionForeground);
                 margin-bottom: 0.4em;
                 font-weight: 500;
+            }
+
+            .account-error {
+                color: var(--vscode-errorForeground);
+                font-size: 0.8em;
+                margin-top: 0.4em;
+                word-break: break-all;
             }
             
             .usage-grid {
@@ -268,10 +275,12 @@ export function useView() {
 
   function renderAccount(account: any, locale: string, showLabel: boolean): string {
     const accountLabel = account.alias || account.id
+    const errorHtml = account.error ? `<div class="account-error">${account.error}</div>` : ''
 
     if (!showLabel) {
       return `
           <div class="account-block">
+              ${errorHtml}
               <div class="usage-grid">
                   ${account.usage.map((u: any) => renderUsageItem(u)).join('')}
               </div>
@@ -282,6 +291,7 @@ export function useView() {
     return `
         <div class="account-block">
             <div class="account-label">${accountLabel}</div>
+            ${errorHtml}
             <div class="usage-grid">
                 ${account.usage.map((u: any) => renderUsageItem(u)).join('')}
             </div>
@@ -428,6 +438,8 @@ export function useView() {
 
     if (providerId === 'google') {
       credential = await loginWithGoogle()
+    } else if (providerId === 'github') {
+      credential = await loginWithGitHub()
     } else if (providerId === 'openai') {
       const method = await selectOpenAIMethod()
       if (!method) return

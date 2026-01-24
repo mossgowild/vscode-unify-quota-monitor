@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## 项目概述
-`unify-quota-monitor` 是一个 VS Code 扩展，旨在使用现代化的 `reactive-vscode` 框架，在侧边栏 Panel 中实时显示多个 AI Provider（OpenAI, Google Antigravity, 智谱 AI/Zhipu AI, Z.ai）的真实用量配额。
+`unify-quota-monitor` 是一个 VS Code 扩展，旨在使用现代化的 `reactive-vscode` 框架，在侧边栏 Panel 中实时显示多个 AI Provider（OpenAI, Google Antigravity, GitHub Copilot, 智谱 AI/Zhipu AI, Z.ai）的真实用量配额。
 
 ## 目录结构
 - `src/extension.ts`: 插件入口，按顺序初始化 Composables 并注册全局命令。
@@ -67,10 +67,14 @@
 - **认证与存储**:
     - 数据持久化在 `unifyQuotaMonitor.accounts` 全局配置中。
     - `ProviderDefinition` 不再包含 `icon` 和 `helpUrl` (已移除未使用的字段)。
+    - **UI 错误提示**: `Account` 支持 `error` 字段，当 API 调用失败时（如 Token 失效或网络错误），在 UI 上直接显示红色错误详情。
 
 ### 4. 认证与存储 (底层)
 - **Google OAuth**: 本地端口 51121，自动捕获授权码。
 - **OpenAI OAuth**: 本地端口 1455，支持 PKCE。
+- **GitHub Auth**: 使用 VS Code 原生 `authentication` API (Scope: `read:user`)。
+    - 配额接口 (`copilot_internal/user`) 直接使用 GitHub OAuth Token (`gho_...`)，需配合 `X-GitHub-Api-Version` 和特定 User-Agent。
+    - Copilot Chat 接口需使用 `copilot_internal/v2/token` 交换得到的 Session Token (`tid=...`)。
 - **Token 刷新**: 在 `auth-helpers.ts` 中实现，`useUsage` 在 API 调用返回 401 时自动尝试刷新。
 
 ## 开发指南

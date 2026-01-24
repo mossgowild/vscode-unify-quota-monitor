@@ -5,7 +5,7 @@ import { getAllProviderDefinitions } from '../providers'
 import { t } from '../i18n'
 import { useAccounts } from './use-accounts'
 import { config, DEFAULT_AUTO_REFRESH } from './use-config'
-import { refreshGoogleToken, refreshOpenAIToken } from '../utils/auth-helpers'
+import { refreshGoogleToken, refreshOpenAIToken, getGitHubAccessToken, exchangeGitHubTokenForCopilot } from '../utils/auth-helpers'
 
 export const useUsage = defineService(() => {
   const { getAccountsByProvider } = useAccounts()
@@ -50,6 +50,78 @@ export const useUsage = defineService(() => {
     }
 
     return account.credential
+  }
+
+  async function fetchGitHubUsage(account: StoredAccount): Promise<Account | null> {
+    console.log('[UnifyQuota] Fetching GitHub usage for', account.alias)
+    const githubToken = await getGitHubAccessToken()
+    if (!githubToken) {
+        console.error('[UnifyQuota] No GitHub token found')
+        return createErrorAccount(account, 'No GitHub token. Please re-login.')
+    }
+
+    try {
+      // Use GitHub Token DIRECTLY for the user/quota endpoint
+      // Do not exchange for Copilot token (tid=...) for this specific endpoint
+      
+      console.log('[UnifyQuota] Fetching GitHub usage with token prefix:', githubToken.substring(0, 10))
+
+      const response = await fetch('https://api.github.com/copilot_internal/user', {
+        headers: {
+          'Authorization': `token ${githubToken}`, 
+          'User-Agent': 'GitHubCopilotChat/0.24.0',
+          'Editor-Version': 'vscode/1.97.0',
+          'Editor-Plugin-Version': 'copilot-chat/0.24.0',
+          'Copilot-Integration-Id': 'vscode-chat',
+          'X-GitHub-Api-Version': '2023-07-07'
+        }
+      })
+      
+      if (!response.ok) {
+          console.error('[UnifyQuota] GitHub API Error', response.status, response.statusText)
+          const text = await response.text()
+          console.error('[UnifyQuota] Response body:', text)
+          return createErrorAccount(account, `API Error: ${response.status} ${response.statusText}`)
+      }
+      
+      const data = await response.json() as any
+      console.log('[UnifyQuota] GitHub API Response Keys:', Object.keys(data))
+      const models: UsageCategory[] = []
+      
+      const interactions = data.quota_snapshots?.premium_interactions || data.premium_interactions || data.user_copilot?.premium_interactions
+      
+      if (interactions) {
+        const limit = interactions.entitlement || interactions.limit || 0
+        const remaining = interactions.remaining || 0
+        const used = limit - remaining
+        
+        models.push({
+          name: 'Copilot Chat',
+          limitType: 'request',
+          used: used,
+          total: limit,
+          resetTime: interactions.reset_date || interactions.next_reset_date
+        })
+      } else {
+          // Debugging: return keys to help identify structure
+          const keys = Object.keys(data).join(', ')
+          console.warn('[UnifyQuota] Unexpected data structure. Keys:', keys)
+          console.log('[UnifyQuota] Full data:', JSON.stringify(data, null, 2))
+          return createErrorAccount(account, `No usage data. Keys: ${keys}`)
+      }
+      
+      return {
+        id: account.id,
+        alias: account.alias,
+        credential: account.credential,
+        usage: models,
+        lastUpdated: new Date().toISOString(),
+      }
+
+    } catch (e: any) {
+      console.error('[UnifyQuota] Exception in fetchGitHubUsage:', e)
+      return createErrorAccount(account, `Error: ${e.message || e}`)
+    }
   }
 
   async function fetchOpenAIUsage(account: StoredAccount): Promise<Account | null> {
@@ -230,12 +302,13 @@ export const useUsage = defineService(() => {
     }
   }
 
-  function createErrorAccount(account: StoredAccount): Account {
+  function createErrorAccount(account: StoredAccount, errorMessage?: string): Account {
     return {
       id: account.id,
       alias: account.alias,
       credential: account.credential,
       usage: [],
+      error: errorMessage || t('Failed to fetch usage'),
       lastUpdated: new Date().toISOString(),
     }
   }
@@ -252,8 +325,10 @@ export const useUsage = defineService(() => {
         return fetchOpenAIUsage(account)
       } else if (providerId === 'google') {
         return fetchGoogleUsage(account)
+      } else if (providerId === 'github') {
+        return fetchGitHubUsage(account)
       } else {
-        return fetchZhipuUsage(providerId, account)
+        return fetchZhipuUsage(providerId as any, account)
       }
     })
 

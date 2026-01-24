@@ -1,4 +1,4 @@
-export type ProviderId = 'openai' | 'zhipu' | 'zai' | 'google'
+export type ProviderId = 'openai' | 'zhipu' | 'zai' | 'google' | 'github'
 
 export interface UsageCategory {
   name: string
@@ -38,6 +38,7 @@ export interface Account {
   credential: string
   usage: UsageCategory[]
   lastUpdated: string
+  error?: string
 }
 
 export interface AutoRefreshConfig {
