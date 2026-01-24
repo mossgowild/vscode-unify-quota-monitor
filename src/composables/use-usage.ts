@@ -1,33 +1,19 @@
-import { defineService, ref, watch } from 'reactive-vscode'
+import { defineService, ref, watchEffect } from 'reactive-vscode'
 import { window } from 'vscode'
 import type { Account, Provider, ProviderId, StoredAccount, UsageCategory } from '../types'
 import { getAllProviderDefinitions } from '../providers'
 import { t } from '../i18n'
 import { useAccounts } from './use-accounts'
 import { config, DEFAULT_AUTO_REFRESH } from './use-config'
-
-// Token 刷新函数类型
-type RefreshGoogleTokenFn = (refreshToken: string) => Promise<string>
-type RefreshOpenAITokenFn = (account: StoredAccount) => Promise<string | null>
-
-// 延迟注入的刷新函数
-let _refreshGoogleToken: RefreshGoogleTokenFn | null = null
-let _refreshOpenAIToken: RefreshOpenAITokenFn | null = null
-
-export function injectTokenRefreshers(
-  refreshGoogleToken: RefreshGoogleTokenFn,
-  refreshOpenAIToken: RefreshOpenAITokenFn,
-) {
-  _refreshGoogleToken = refreshGoogleToken
-  _refreshOpenAIToken = refreshOpenAIToken
-}
+import { refreshGoogleToken, refreshOpenAIToken } from '../utils/auth-helpers'
 
 export const useUsage = defineService(() => {
+  const { getAccountsByProvider } = useAccounts()
+
   const providers = ref<Provider[]>([])
   const isRefreshing = ref(false)
   const hasLoadedOnce = ref(false)
 
-  // 初始化 Provider 定义
   function initProviders() {
     const definitions = getAllProviderDefinitions()
     providers.value = definitions.map(def => ({
@@ -36,20 +22,39 @@ export const useUsage = defineService(() => {
     }))
   }
 
-  const { getAccountsByProvider } = useAccounts()
-
-  async function fetchOpenAIUsage(account: StoredAccount): Promise<UsageCategory[]> {
-    let token = account.credential
-
-    try {
-      const json = JSON.parse(account.credential) as { accessToken?: string }
-      if (json.accessToken) {
-        token = json.accessToken
+  async function getAccessToken(account: StoredAccount): Promise<string | null> {
+    if (account.providerId === 'google') {
+      try {
+        const token = await refreshGoogleToken(account.credential)
+        return token
+      } catch {
+        return null
       }
     }
-    catch {
-      // Not a JSON, treat as raw token
+
+    if (account.providerId === 'openai') {
+      try {
+        const json = JSON.parse(account.credential)
+        if (json.accessToken) {
+          return json.accessToken
+        }
+      } catch {
+        return null
+      }
+
+      const result = await refreshOpenAIToken(account.credential)
+      if (result) {
+        return result.accessToken
+      }
+      return null
     }
+
+    return account.credential
+  }
+
+  async function fetchOpenAIUsage(account: StoredAccount): Promise<Account | null> {
+    const token = await getAccessToken(account)
+    if (!token) return createErrorAccount(account)
 
     let response = await fetch('https://chatgpt.com/backend-api/wham/usage', {
       headers: {
@@ -58,22 +63,19 @@ export const useUsage = defineService(() => {
       },
     })
 
-    // 尝试刷新 Token
-    if (response.status === 401 && _refreshOpenAIToken) {
-      const newToken = await _refreshOpenAIToken(account)
-      if (newToken) {
+    if (response.status === 401) {
+      const result = await refreshOpenAIToken(account.credential)
+      if (result?.accessToken) {
         response = await fetch('https://chatgpt.com/backend-api/wham/usage', {
           headers: {
-            'Authorization': `Bearer ${newToken}`,
+            'Authorization': `Bearer ${result.accessToken}`,
             'User-Agent': 'UnifyQuotaMonitor/1.0',
           },
         })
       }
     }
 
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`)
-    }
+    if (!response.ok) return createErrorAccount(account)
 
     const data = await response.json() as any
     const models: UsageCategory[] = []
@@ -109,24 +111,32 @@ export const useUsage = defineService(() => {
       }
     }
 
-    return models
+    return {
+      id: account.id,
+      alias: account.alias,
+      credential: account.credential,
+      usage: models,
+      lastUpdated: new Date().toISOString(),
+    }
   }
 
-  async function fetchZhipuUsage(providerId: 'zhipu' | 'zai', token: string): Promise<UsageCategory[]> {
+  async function fetchZhipuUsage(
+    providerId: 'zhipu' | 'zai',
+    account: StoredAccount
+  ): Promise<Account | null> {
+    const apiKey = account.credential
     const url = providerId === 'zhipu'
       ? 'https://bigmodel.cn/api/monitor/usage/quota/limit'
       : 'https://api.z.ai/api/monitor/usage/quota/limit'
 
     const response = await fetch(url, {
       headers: {
-        'Authorization': token,
+        'Authorization': apiKey,
         'User-Agent': 'UnifyQuotaMonitor/1.0',
       },
     })
 
-    if (!response.ok) {
-      throw new Error(`${providerId} API error: ${response.status}`)
-    }
+    if (!response.ok) return createErrorAccount(account)
 
     const data = await response.json() as any
     const models: UsageCategory[] = []
@@ -140,8 +150,7 @@ export const useUsage = defineService(() => {
           const timestamp = Number(rawResetTime)
           if (!Number.isNaN(timestamp) && timestamp > 0) {
             resetDate = new Date(timestamp)
-          }
-          else {
+          } else {
             resetDate = new Date(rawResetTime)
           }
         }
@@ -156,29 +165,30 @@ export const useUsage = defineService(() => {
       }
     }
 
-    return models
+    return {
+      id: account.id,
+      alias: account.alias,
+      credential: account.credential,
+      usage: models,
+      lastUpdated: new Date().toISOString(),
+    }
   }
 
-  async function fetchGoogleUsage(refreshToken: string): Promise<UsageCategory[]> {
-    if (!_refreshGoogleToken) {
-      throw new Error('Google token refresher not injected')
-    }
-
-    const accessToken = await _refreshGoogleToken(refreshToken)
+  async function fetchGoogleUsage(account: StoredAccount): Promise<Account | null> {
+    const token = await getAccessToken(account)
+    if (!token) return createErrorAccount(account)
 
     const quotaResponse = await fetch('https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
+        'Authorization': `Bearer ${token}`,
         'User-Agent': 'antigravity/1.11.9',
       },
       body: JSON.stringify({ project: 'rising-fact-p41fc' }),
     })
 
-    if (!quotaResponse.ok) {
-      throw new Error(`Google API error: ${quotaResponse.status}`)
-    }
+    if (!quotaResponse.ok) return createErrorAccount(account)
 
     const data = await quotaResponse.json() as any
     const models: UsageCategory[] = []
@@ -204,55 +214,43 @@ export const useUsage = defineService(() => {
       }
     }
 
-    return models
+    return {
+      id: account.id,
+      alias: account.alias,
+      credential: account.credential,
+      usage: models,
+      lastUpdated: new Date().toISOString(),
+    }
   }
 
-  async function fetchAccountUsage(providerId: ProviderId, storedAccount: StoredAccount): Promise<Account | null> {
-    try {
-      let usage: UsageCategory[] = []
-
-      if (providerId === 'openai') {
-        usage = await fetchOpenAIUsage(storedAccount)
-      }
-      else if (providerId === 'zhipu' || providerId === 'zai') {
-        usage = await fetchZhipuUsage(providerId, storedAccount.credential)
-      }
-      else if (providerId === 'google') {
-        usage = await fetchGoogleUsage(storedAccount.credential)
-      }
-
-      return {
-        id: storedAccount.id,
-        alias: storedAccount.alias,
-        credential: storedAccount.credential,
-        usage,
-        lastUpdated: new Date().toISOString(),
-      }
-    }
-    catch (err) {
-      console.error(`Failed to fetch usage for account ${storedAccount.id}:`, err)
-      return {
-        id: storedAccount.id,
-        alias: storedAccount.alias,
-        credential: storedAccount.credential,
-        usage: [],
-        lastUpdated: new Date().toISOString(),
-      }
+  function createErrorAccount(account: StoredAccount): Account {
+    return {
+      id: account.id,
+      alias: account.alias,
+      credential: account.credential,
+      usage: [],
+      lastUpdated: new Date().toISOString(),
     }
   }
 
   async function refreshProvider(providerId: ProviderId) {
     const provider = providers.value.find(p => p.id === providerId)
-    if (!provider) {
-      return
-    }
+    if (!provider) return
 
     const storedAccounts = getAccountsByProvider(providerId)
     const newAccounts: Account[] = []
 
-    const promises = storedAccounts.map(stored => fetchAccountUsage(providerId, stored))
-    const results = await Promise.allSettled(promises)
+    const promises = storedAccounts.map(async (account) => {
+      if (providerId === 'openai') {
+        return fetchOpenAIUsage(account)
+      } else if (providerId === 'google') {
+        return fetchGoogleUsage(account)
+      } else {
+        return fetchZhipuUsage(providerId, account)
+      }
+    })
 
+    const results = await Promise.allSettled(promises)
     for (const result of results) {
       if (result.status === 'fulfilled' && result.value) {
         newAccounts.push(result.value)
@@ -262,50 +260,48 @@ export const useUsage = defineService(() => {
     provider.accounts = newAccounts
   }
 
-  async function refresh(providerId?: ProviderId) {
-    if (isRefreshing.value) {
-      return
-    }
-
+  async function refreshAll() {
     isRefreshing.value = true
-
     try {
       await window.withProgress({
         location: { viewId: 'unifyQuotaMonitor.usageView' },
         title: t('Refreshing usage...'),
       }, async () => {
-        if (providerId) {
-          await refreshProvider(providerId)
-        }
-        else {
-          const promises = providers.value.map(p => refreshProvider(p.id))
-          await Promise.allSettled(promises)
-        }
+        const promises = providers.value.map(p => refreshProvider(p.id))
+        await Promise.allSettled(promises)
       })
-    }
-    finally {
+    } finally {
       isRefreshing.value = false
       hasLoadedOnce.value = true
     }
   }
 
-  function hasStoredAccounts(): boolean {
-    return providers.value.some(p => getAccountsByProvider(p.id).length > 0)
+  let debounceTimer: ReturnType<typeof setTimeout> | undefined
+
+  function debouncedRefresh() {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer)
+    }
+    debounceTimer = setTimeout(() => {
+      refreshAll()
+    }, 300)
   }
 
-  // 自动刷新
+  watchEffect(() => {
+    // Access config.accounts to track dependencies
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _ = config.accounts
+    debouncedRefresh()
+  })
+
   let refreshTimer: ReturnType<typeof setInterval> | undefined
-
-  function getAutoRefreshConfig() {
-    return config.autoRefresh ?? DEFAULT_AUTO_REFRESH
-  }
 
   function startAutoRefresh() {
     stopAutoRefresh()
-    const autoRefresh = getAutoRefreshConfig()
+    const autoRefresh = config.autoRefresh ?? DEFAULT_AUTO_REFRESH
     if (autoRefresh.enabled) {
       refreshTimer = setInterval(() => {
-        refresh()
+        refreshAll()
       }, autoRefresh.intervalMs)
     }
   }
@@ -317,39 +313,23 @@ export const useUsage = defineService(() => {
     }
   }
 
-  // 初始化
+  watchEffect(() => {
+    const autoRefresh = config.autoRefresh
+    stopAutoRefresh()
+    if (autoRefresh?.enabled) {
+      refreshTimer = setInterval(() => {
+        refreshAll()
+      }, autoRefresh.intervalMs)
+    }
+  })
+
   initProviders()
-
-  // 监听 autoRefresh 配置变化，重新启动自动刷新
-  watch(
-    () => ({ ...getAutoRefreshConfig() }),
-    () => {
-      const autoRefresh = getAutoRefreshConfig()
-      if (autoRefresh.enabled) {
-        startAutoRefresh()
-      }
-      else {
-        stopAutoRefresh()
-      }
-    },
-    { deep: true, immediate: true },
-  )
-
-  // 监听账号配置变化，自动刷新用量
-  watch(
-    () => config.accounts,
-    () => {
-      refresh()
-    },
-    { deep: true },
-  )
 
   return {
     providers,
     isRefreshing,
     hasLoadedOnce,
-    refresh,
-    hasStoredAccounts,
+    refresh: refreshAll,
     startAutoRefresh,
     stopAutoRefresh,
   }

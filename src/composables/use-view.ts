@@ -1,8 +1,11 @@
 import { computed, useWebviewView } from 'reactive-vscode'
-import { env } from 'vscode'
-import type { Account, Provider, UsageCategory } from '../types'
+import { env, QuickPickItemKind, QuickPickItem, window, ConfigurationTarget } from 'vscode'
+import type { ProviderId } from '../types'
+import { getAllProviderDefinitions, getProviderDefinition } from '../providers'
 import { t } from '../i18n'
 import { useUsage } from './use-usage'
+import { config } from './use-config'
+import { loginWithGoogle, loginWithOpenAI, loginWithOpenAIToken, loginWithApiKey } from '../utils/auth-helpers'
 
 export function useView() {
   const { providers, hasLoadedOnce } = useUsage()
@@ -10,12 +13,12 @@ export function useView() {
   const html = computed(() => {
     const providerList = providers.value
     const hasAccounts = providerList.some(p => p.accounts && p.accounts.length > 0)
-    const locale = env.language || 'en'
+    const htmlLocale = env.language || 'en'
 
     const showEmptyState = !hasAccounts && hasLoadedOnce.value
 
     return `<!DOCTYPE html>
-    <html lang="${locale}">
+    <html lang="${htmlLocale}">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -186,7 +189,7 @@ export function useView() {
     <body>
         <div class="container">
             <div class="content">
-                ${showEmptyState ? renderEmptyState() : renderProviders(providerList, locale)}
+                ${showEmptyState ? renderEmptyState() : renderProviders(providerList, htmlLocale)}
             </div>
         </div>
         <script>
@@ -221,7 +224,7 @@ export function useView() {
 
   function renderEmptyState(): string {
     const title = t('No Active Account')
-    const description = t('Click the icon buttons in the top right to manage accounts')
+    const description = t('Click icon buttons in the top right to manage accounts')
 
     const svg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
         <path d="M18 20V10" />
@@ -238,14 +241,14 @@ export function useView() {
     `
   }
 
-  function renderProviders(providerList: Provider[], locale: string): string {
+  function renderProviders(providerList: any[], locale: string): string {
     return providerList
       .filter(p => p.accounts && Array.isArray(p.accounts) && p.accounts.length > 0)
       .map(p => renderProvider(p, locale))
       .join('')
   }
 
-  function renderProvider(provider: Provider, locale: string): string {
+  function renderProvider(provider: any, locale: string): string {
     const accounts = Array.isArray(provider.accounts) ? provider.accounts : []
     const hasMultipleAccounts = accounts.length > 1
     return `
@@ -253,19 +256,19 @@ export function useView() {
             <div class="provider-header">
                 <span>${provider.name}</span>
             </div>
-            ${accounts.map(acc => renderAccount(acc, locale, hasMultipleAccounts)).join('')}
+            ${accounts.map((acc: any) => renderAccount(acc, locale, hasMultipleAccounts)).join('')}
         </div>
     `
   }
 
-  function renderAccount(account: Account, locale: string, showLabel: boolean): string {
+  function renderAccount(account: any, locale: string, showLabel: boolean): string {
     const accountLabel = account.alias || account.id
 
     if (!showLabel) {
       return `
           <div class="account-block">
               <div class="usage-grid">
-                  ${account.usage.map(u => renderUsageItem(u, locale)).join('')}
+                  ${account.usage.map((u: any) => renderUsageItem(u)).join('')}
               </div>
           </div>
       `
@@ -275,32 +278,29 @@ export function useView() {
         <div class="account-block">
             <div class="account-label">${accountLabel}</div>
             <div class="usage-grid">
-                ${account.usage.map(u => renderUsageItem(u, locale)).join('')}
+                ${account.usage.map((u: any) => renderUsageItem(u)).join('')}
             </div>
         </div>
     `
   }
 
-  function renderUsageItem(usage: UsageCategory, locale: string): string {
+  function renderUsageItem(usage: any): string {
     const percentage = usage.total > 0 ? (usage.used / usage.total) : 0
     const usedPercent = Math.min(100, Math.round(percentage * 100))
 
     let statusColorClass = ''
     if (usedPercent >= 90) {
       statusColorClass = 'danger'
-    }
-    else if (usedPercent >= 75) {
+    } else if (usedPercent >= 75) {
       statusColorClass = 'warning'
     }
 
     let displayValue = ''
     if (usage.percentageOnly) {
       displayValue = `${usedPercent}%`
-    }
-    else if (usage.limitType === 'token') {
+    } else if (usage.limitType === 'token') {
       displayValue = `${(usage.used / 1000000).toFixed(1)}M / ${(usage.total / 1000000).toFixed(1)}M`
-    }
-    else {
+    } else {
       const unit = usage.limitType === 'request' ? ` ${t('requests')}` : ` ${t('credits')}`
       displayValue = `${usage.used} / ${usage.total}${unit}`
     }
@@ -323,8 +323,7 @@ export function useView() {
 
         const safeTemplate = resetTemplate.replace(/"/g, '&quot;')
         resetHtml = `<div class="usage-reset" data-reset-time="${usage.resetTime}" data-template="${safeTemplate}">${resetText}</div>`
-      }
-      else {
+      } else {
         resetText = t('Resetting...')
         resetHtml = `<div class="usage-reset">${resetText}</div>`
       }
@@ -350,7 +349,255 @@ export function useView() {
     },
   })
 
+  async function showAccountMenu() {
+    const accounts = config.accounts ?? []
+    
+    const items: (QuickPickItem & { action?: string; accountId?: string; providerId?: ProviderId })[] = []
+
+    if (accounts.length > 0) {
+      for (const account of accounts) {
+        const providerDef = getProviderDefinition(account.providerId)
+        const accountLabel = account.alias || account.id
+        items.push({
+          label: `${providerDef?.name || account.providerId} - ${accountLabel}`,
+          description: '',
+          action: 'manageAccount',
+          accountId: account.id,
+          providerId: account.providerId
+        })
+      }
+
+      items.push({ label: '', kind: QuickPickItemKind.Separator } as any)
+    }
+
+    items.push({
+      label: `$(plus) ${t('Add Provider')}`,
+      description: t('Login to new AI Provider'),
+      action: 'addProvider'
+    } as any)
+
+    const selected = await window.showQuickPick(items as QuickPickItem[], {
+      title: t('Manage Accounts'),
+      placeHolder: t('Manage accounts or add new Provider')
+    })
+
+    if (!selected) return
+
+    if ((selected as any).action === 'addProvider') {
+      await addProviderAccount()
+    } else if ((selected as any).action === 'manageAccount' && (selected as any).accountId) {
+      await showAccountActions((selected as any).accountId)
+    }
+  }
+
+  async function addProviderAccount() {
+    const providers = getAllProviderDefinitions()
+    const items = providers.map((p) => ({
+      label: p.name,
+      description:
+        p.auth.type === 'oauth'
+          ? 'OAuth Login'
+          : p.auth.type === 'key'
+            ? 'API Key'
+            : 'Access Token',
+      providerId: p.id
+    } as QuickPickItem & { providerId: ProviderId }))
+
+    const selected = await window.showQuickPick(items as QuickPickItem[], {
+      title: t('Select Provider'),
+      placeHolder: t('Select AI Provider to add')
+    })
+
+    if (!selected) return
+
+    await addAccount((selected as any).providerId)
+  }
+
+  async function addAccount(providerId: ProviderId) {
+    let credential: string
+
+    if (providerId === 'google') {
+      credential = await loginWithGoogle()
+    } else if (providerId === 'openai') {
+      const method = await selectOpenAIMethod()
+      if (!method) return
+
+      if (method === 'oauth') {
+        credential = await loginWithOpenAI()
+      } else {
+        credential = await loginWithOpenAIToken()
+      }
+    } else {
+      credential = await loginWithApiKey(providerId as 'zhipu' | 'zai')
+    }
+
+    const alias = await inputAlias()
+    if (alias === undefined) return
+
+    const list = [...(config.accounts ?? [])]
+    const id = `${providerId}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`
+    list.push({ id, providerId, credential, alias })
+    await config.update('accounts', list, ConfigurationTarget.Global)
+  }
+
+  async function showAccountActions(accountId: string) {
+    const account = (config.accounts ?? []).find(a => a.id === accountId)
+    if (!account) return
+
+    const providerDef = getProviderDefinition(account.providerId)
+    const accountLabel = account.alias || accountId
+
+    const items = [
+      { label: `$(arrow-left) ${t('Back')}`, action: 'back' },
+      { label: '', kind: QuickPickItemKind.Separator },
+      {
+        label: `$(pencil) ${t('Set Alias')}`,
+        description: t('Modify account alias'),
+        action: 'setAlias'
+      },
+      {
+        label: `$(sign-in) ${t('Relogin')}`,
+        description: t("Update this account's credentials"),
+        action: 'relogin'
+      },
+      {
+        label: `$(sign-out) ${t('Logout')}`,
+        description: t('Delete this account'),
+        action: 'logout'
+      }
+    ]
+
+    const selected = await window.showQuickPick(items, {
+      title: `${providerDef?.name || account.providerId} - ${accountLabel}`,
+      placeHolder: t('Select action')
+    })
+
+    if (!selected) return
+
+    if (selected.action === 'back') {
+      await showAccountMenu()
+    } else if (selected.action === 'setAlias') {
+      await setAccountAlias(accountId)
+    } else if (selected.action === 'relogin') {
+      await reloginAccount(accountId)
+    } else if (selected.action === 'logout') {
+      await deleteAccount(accountId)
+    }
+  }
+
+  async function setAccountAlias(accountId: string) {
+    const account = (config.accounts ?? []).find(a => a.id === accountId)
+    if (!account) return
+
+    const alias = await window.showInputBox({
+      title: t('Account Alias'),
+      prompt: t('Set an alias for this account'),
+      value: account.alias || '',
+      placeHolder: `${t('Current alias')}: ${account.alias || t('None')}`
+    })
+
+    if (alias === undefined) return
+
+    const list = (config.accounts ?? []).map(a => 
+      a.id === accountId ? { ...a, alias: alias || undefined } : a
+    )
+    await config.update('accounts', list, ConfigurationTarget.Global)
+  }
+
+  async function reloginAccount(accountId: string) {
+    const account = (config.accounts ?? []).find(a => a.id === accountId)
+    if (!account) return
+
+    let credential: string
+
+    if (account.providerId === 'google') {
+      credential = await loginWithGoogle()
+    } else if (account.providerId === 'openai') {
+      const method = await selectOpenAIMethod()
+      if (!method) return
+
+      if (method === 'oauth') {
+        credential = await loginWithOpenAI()
+      } else {
+        credential = await loginWithOpenAIToken()
+      }
+    } else {
+      credential = await loginWithApiKey(account.providerId as 'zhipu' | 'zai')
+    }
+
+    const list = (config.accounts ?? []).map(a => 
+      a.id === accountId ? { ...a, credential } : a
+    )
+    await config.update('accounts', list, ConfigurationTarget.Global)
+  }
+
+  async function deleteAccount(accountId: string) {
+    const account = (config.accounts ?? []).find(a => a.id === accountId)
+    if (!account) return
+
+    const providerDef = getProviderDefinition(account.providerId)
+    const accountLabel = account.alias || accountId
+    const providerName = providerDef?.name || account.providerId
+
+    const confirmAction = await window.showWarningMessage(
+      t(
+        'Are you sure you want to logout from {providerName} - {accountLabel}?',
+        { providerName, accountLabel }
+      ),
+      t('Confirm'),
+      t('Cancel')
+    )
+
+    if (confirmAction !== t('Confirm')) {
+      await showAccountMenu()
+      return
+    }
+
+    const list = (config.accounts ?? []).filter(a => a.id !== accountId)
+    await config.update('accounts', list, ConfigurationTarget.Global)
+
+    window.showInformationMessage(
+      t('Logged out from {providerName} - {accountLabel}', {
+        providerName,
+        accountLabel
+      })
+    )
+
+    await showAccountMenu()
+  }
+
+  async function selectOpenAIMethod(): Promise<'oauth' | 'token' | null> {
+    const items = [
+      {
+        label: t('OAuth Login (Recommended)'),
+        description: t('For ChatGPT Plus/Pro'),
+        detail: 'oauth'
+      },
+      {
+        label: 'Access Token',
+        description: t('Manually enter JWT Token'),
+        detail: 'token'
+      }
+    ]
+
+    const selected = await window.showQuickPick(items, {
+      placeHolder: t('Select Login Method')
+    })
+
+    if (!selected) return null
+    return selected.detail as 'oauth' | 'token'
+  }
+
+  async function inputAlias(): Promise<string | undefined> {
+    return window.showInputBox({
+      title: t('Account Alias (Optional)'),
+      prompt: t('Set an alias for this account to distinguish multiple accounts'),
+      placeHolder: t('e.g. Work, Personal, Team, etc.'),
+    })
+  }
+
   return {
     view,
+    showAccountMenu,
   }
 }

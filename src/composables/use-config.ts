@@ -8,6 +8,10 @@ export interface Config {
 
 export const config = defineConfig<Config>('unifyQuotaMonitor')
 
+export function useConfig() {
+  return config
+}
+
 // 默认值
 export const DEFAULT_AUTO_REFRESH: AutoRefreshConfig = {
   enabled: true,

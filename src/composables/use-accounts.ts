@@ -6,7 +6,7 @@ import { config } from './use-config'
 export function useAccounts() {
   const accounts = computed(() => config.accounts ?? [])
 
-  function getStoredAccounts(): StoredAccount[] {
+  function getAccounts(): StoredAccount[] {
     return accounts.value
   }
 
@@ -18,22 +18,13 @@ export function useAccounts() {
     return accounts.value.filter(a => a.providerId === providerId)
   }
 
-  function generateAccountId(providerId: ProviderId): string {
-    return `${providerId}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`
-  }
-
-  function hasStoredAccounts(): boolean {
-    return accounts.value.length > 0
-  }
-
   async function saveAccount(account: StoredAccount): Promise<void> {
     const list = [...accounts.value]
     const index = list.findIndex(a => a.id === account.id)
 
     if (index >= 0) {
       list[index] = account
-    }
-    else {
+    } else {
       list.push(account)
     }
 
@@ -45,14 +36,24 @@ export function useAccounts() {
     await config.update('accounts', list, ConfigurationTarget.Global)
   }
 
+  async function addAccount(
+    providerId: ProviderId,
+    credential: string,
+    alias?: string
+  ): Promise<string> {
+    const id = `${providerId}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`
+    const account: StoredAccount = { id, providerId, credential, alias }
+    await saveAccount(account)
+    return id
+  }
+
   return {
     accounts,
-    getStoredAccounts,
+    getAccounts,
     getAccount,
     getAccountsByProvider,
-    generateAccountId,
-    hasStoredAccounts,
     saveAccount,
     deleteAccount,
+    addAccount,
   }
 }
