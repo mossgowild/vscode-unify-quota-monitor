@@ -65,7 +65,7 @@
           "type": "object",
           "default": {
             "enabled": true,
-            "intervalMs": 60000
+            "intervalMs": 180000
           },
           "markdownDescription": "%configuration.autoRefresh.markdownDescription%",
           "properties": {
@@ -137,11 +137,12 @@
   "devDependencies": {
     "@types/node": "22.x",
     "@types/vscode": "^1.99.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
     "reactive-vscode": "^1.0.0-beta.2",
     "tsdown": "^0.15.11",
     "typescript": "^5.9.3",
-    "@typescript-eslint/eslint-plugin": "^6.15.0",
-    "@typescript-eslint/parser": "^6.15.0",
-    "eslint": "^8.56.0"
+    "vite": "^7.3.1"
   }
 }

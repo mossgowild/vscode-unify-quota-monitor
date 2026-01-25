@@ -15,5 +15,5 @@ export function useConfig() {
 // 默认值
 export const DEFAULT_AUTO_REFRESH: AutoRefreshConfig = {
   enabled: true,
-  intervalMs: 60000,
+  intervalMs: 180000,
 }
