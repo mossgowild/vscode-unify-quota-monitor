@@ -106,6 +106,15 @@ config.accounts 变化 → watchEffect 触发 → useUsage.fetchAllUsage() → p
 setInterval(intervalMs) → usage.refresh() → 重新获取所有账号用量
 ```
 
+## 构建系统
+
+项目使用 **Vite** 进行构建和开发，配置位于 `vite.config.ts`。
+
+- **构建工具**: Vite (Library Mode)
+- **输出格式**: CommonJS (`dist/extension.cjs`)
+- **运行环境**: Node.js 22 (VS Code 扩展宿主环境)
+- **开发模式**: `npm run dev` 使用 Vite Watch 模式实时编译
+
 ## 详细文档
 
 - 📐 [架构设计](./docs/architecture.md) - MVC 模式、数据流、响应式系统详解

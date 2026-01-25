@@ -53,18 +53,14 @@ export const useUsage = defineService(() => {
   }
 
   async function fetchGitHubUsage(account: StoredAccount): Promise<Account | null> {
-    console.log('[UnifyQuota] Fetching GitHub usage for', account.alias)
     const githubToken = await getGitHubAccessToken()
     if (!githubToken) {
-        console.error('[UnifyQuota] No GitHub token found')
         return createErrorAccount(account, 'No GitHub token. Please re-login.')
     }
 
     try {
       // Use GitHub Token DIRECTLY for the user/quota endpoint
       // Do not exchange for Copilot token (tid=...) for this specific endpoint
-      
-      console.log('[UnifyQuota] Fetching GitHub usage with token prefix:', githubToken.substring(0, 10))
 
       const response = await fetch('https://api.github.com/copilot_internal/user', {
         headers: {
@@ -78,14 +74,10 @@ export const useUsage = defineService(() => {
       })
       
       if (!response.ok) {
-          console.error('[UnifyQuota] GitHub API Error', response.status, response.statusText)
-          const text = await response.text()
-          console.error('[UnifyQuota] Response body:', text)
           return createErrorAccount(account, `API Error: ${response.status} ${response.statusText}`)
       }
-      
+
       const data = await response.json() as any
-      console.log('[UnifyQuota] GitHub API Response Keys:', Object.keys(data))
       const models: UsageCategory[] = []
       
       const interactions = data.quota_snapshots?.premium_interactions || data.premium_interactions || data.user_copilot?.premium_interactions
@@ -103,10 +95,7 @@ export const useUsage = defineService(() => {
           resetTime: interactions.reset_date || interactions.next_reset_date
         })
       } else {
-          // Debugging: return keys to help identify structure
           const keys = Object.keys(data).join(', ')
-          console.warn('[UnifyQuota] Unexpected data structure. Keys:', keys)
-          console.log('[UnifyQuota] Full data:', JSON.stringify(data, null, 2))
           return createErrorAccount(account, `No usage data. Keys: ${keys}`)
       }
       
@@ -119,7 +108,6 @@ export const useUsage = defineService(() => {
       }
 
     } catch (e: any) {
-      console.error('[UnifyQuota] Exception in fetchGitHubUsage:', e)
       return createErrorAccount(account, `Error: ${e.message || e}`)
     }
   }
