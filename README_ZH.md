@@ -2,8 +2,7 @@
 
 > 一个简洁美观的 VS Code 扩展，实时监控多个 AI Provider 的配额使用情况
 
-![Preview](images/image1.png)
-![Preview](images/image2.png)
+![Preview](images/image.png)
 
 ## ✨ 为什么使用统一配额监控？
 
@@ -36,6 +35,7 @@
 | **智谱 AI** | Token 限额、MCP 配额 | API Key |
 | **Z.ai** | Token 限额、MCP 配额 | API Key |
 | **Google Antigravity** | Token 使用量、重置倒计时 | Google OAuth |
+| **Gemini CLI** | 使用百分比、重置倒计时 | Google OAuth |
 
 ---
 
@@ -71,7 +71,7 @@
 3. 选择 Provider：
    - **OpenAI**: 输入 Access Token (JWT) 或通过 OAuth 登录
    - **智谱 AI / Z.ai**: 输入 API Key
-   - **Google Antigravity**: 通过浏览器进行 OAuth 认证
+   - **Google Antigravity / Gemini CLI**: 通过浏览器进行 OAuth 认证
 4. （可选）为账号设置别名
 
 ### 管理账号
@@ -187,6 +187,11 @@ code .
 ---
 
 ## 📝 更新日志
+
+### Unreleased
+- ✨ 新增 Gemini CLI 支持
+- 🎯 支持 Gemini 3/2.5/2.0/1.5 系列模型
+- 🔐 Gemini CLI 的 Google OAuth 认证
 
 ### 0.0.1 (2025-01-23)
 - ✨ 初始版本发布

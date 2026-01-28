@@ -71,6 +71,41 @@ export function generatePkce() {
 }
 ```
 
+## Gemini CLI OAuth
+
+### 配置
+
+- **本地端口**: 51121（与 Google Antigravity 复用）
+- **认证方式**: Google OAuth 2.0
+- **Client ID**: `681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j`
+- **存储**: accessToken + refreshToken（JSON 格式）
+
+### 流程
+
+1. 生成随机 state 参数
+2. 构建 Google OAuth 授权 URL
+3. 使用 `env.openExternal()` 打开浏览器
+4. 本地 HTTP Server 监听端口 51121
+5. 自动捕获回调中的授权码
+6. 交换获取 access_token 和 refresh_token
+7. 使用 refresh_token 自动刷新 access_token
+
+### 用量 API
+
+- **项目获取**: `cloudcode-pa.googleapis.com/v1internal:loadCodeAssist`
+- **配额获取**: `cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota`
+- **返回格式**: `buckets[]` 数组，包含 `modelId`、`remainingFraction`、`resetTime`
+- **显示方式**: 百分比（`remainingFraction` 转换为已使用百分比）
+
+### 支持模型
+
+| modelId | 显示名称 |
+|---------|----------|
+| `gemini-3-pro-preview` | Gemini 3 Pro |
+| `gemini-2.5-pro` | Gemini 2.5 Pro |
+| `gemini-2.0-flash` | Gemini 2.0 Flash |
+| ... | ... |
+
 ## GitHub Auth
 
 ### 配置

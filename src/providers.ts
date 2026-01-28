@@ -36,7 +36,7 @@ function getProviderDefinitions(): ProviderDefinition[] {
       auth: {
         required: true,
         type: 'oauth',
-        placeholder: t('Login via OAuth'),
+        placeholder: t('Login with Antigravity OAuth'),
       },
     },
     {
@@ -45,7 +45,16 @@ function getProviderDefinitions(): ProviderDefinition[] {
       auth: {
         required: true,
         type: 'oauth',
-        placeholder: t('Login with GitHub'),
+        placeholder: t('Login with GitHub OAuth'),
+      },
+    },
+    {
+      id: 'gemini-cli',
+      name: 'Gemini CLI',
+      auth: {
+        required: true,
+        type: 'oauth',
+        placeholder: t('Login with Gemini CLI OAuth'),
       },
     },
   ]

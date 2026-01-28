@@ -5,7 +5,7 @@ import { getAllProviderDefinitions, getProviderDefinition } from '../providers'
 import { t } from '../i18n'
 import { useUsage } from './use-usage'
 import { config } from './use-config'
-import { loginWithGoogle, loginWithOpenAI, loginWithOpenAIToken, loginWithApiKey, loginWithGitHub } from '../utils/auth-helpers'
+import { loginWithGoogle, loginWithOpenAI, loginWithOpenAIToken, loginWithApiKey, loginWithGitHub, loginWithGeminiCli } from '../utils/auth-helpers'
 
 export function useView() {
   const { providers, hasLoadedOnce } = useUsage()
@@ -473,6 +473,8 @@ export function useView() {
       credential = await loginWithGoogle()
     } else if (providerId === 'github') {
       credential = await loginWithGitHub()
+    } else if (providerId === 'gemini-cli') {
+      credential = await loginWithGeminiCli()
     } else if (providerId === 'openai') {
       const method = await selectOpenAIMethod()
       if (!method) return
@@ -567,6 +569,8 @@ export function useView() {
 
     if (account.providerId === 'google') {
       credential = await loginWithGoogle()
+    } else if (account.providerId === 'gemini-cli') {
+      credential = await loginWithGeminiCli()
     } else if (account.providerId === 'openai') {
       const method = await selectOpenAIMethod()
       if (!method) return

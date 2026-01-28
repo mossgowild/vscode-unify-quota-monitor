@@ -58,5 +58,7 @@
   "Enter OpenAI Access Token (JWT)": "输入 OpenAI Access Token (JWT)",
   "Enter Zhipu AI Key": "输入智谱 AI Key",
   "Enter Z.ai Key": "输入 Z.ai Key",
-  "Login via OAuth": "通过 OAuth 登录"
+  "Login via OAuth": "通过 OAuth 登录",
+  "Login with Gemini CLI OAuth": "通过 Gemini CLI OAuth 登录",
+  "Waiting for Gemini CLI authorization...": "等待 Gemini CLI 授权中..."
 }

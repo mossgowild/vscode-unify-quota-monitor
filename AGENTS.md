@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-`unify-quota-monitor` 是一个 VS Code 扩展，使用 `reactive-vscode` 框架在侧边栏 Panel 中实时显示多个 AI Provider（OpenAI, Google Antigravity, GitHub Copilot, 智谱 AI/Zhipu AI, Z.ai）的真实用量配额。
+`unify-quota-monitor` 是一个 VS Code 扩展，使用 `reactive-vscode` 框架在侧边栏 Panel 中实时显示多个 AI Provider（OpenAI, Google Antigravity, GitHub Copilot, Gemini CLI, 智谱 AI/Zhipu AI, Z.ai）的真实用量配额。
 
 ## 快速开始
 
@@ -82,6 +82,7 @@ View (useView) → Model (config) → Controller (useUsage) → View (useView)
 |---|---|---|---|
 | `openai` | OpenAI | OAuth / Token | refresh_token (OAuth) 或 accessToken (JWT) |
 | `google` | Google Antigravity | OAuth | refresh_token (端口 51121) |
+| `gemini-cli` | Gemini CLI | OAuth | accessToken + refresh_token (端口 51121) |
 | `zhipu` | Zhipu AI | API Key | API Key |
 | `zai` | Z.ai | API Key | API Key |
 | `github` | GitHub Copilot | OAuth | VS Code authentication.getSession() |
@@ -90,8 +91,24 @@ View (useView) → Model (config) → Controller (useUsage) → View (useView)
 
 - **自动响应式**: `config` 变化触发 `watchEffect` 重新计算，自动刷新数据
 - **防抖优化**: `useUsage` 实现防抖，避免频繁配置变化导致过多 API 请求
-- **无状态工具函数**: 认证逻辑由无状态函数处理（`loginWithGoogle`, `loginWithOpenAI`, `loginWithGitHub`）
+- **无状态工具函数**: 认证逻辑由无状态函数处理（`loginWithGoogle`, `loginWithOpenAI`, `loginWithGeminiCli`, `loginWithGitHub`）
 - **服务单例**: `defineService` 确保 `useUsage` 全局唯一实例
+
+### Provider 用量类型
+
+| Provider | 用量类型 | 说明 |
+|---|---|---|
+| OpenAI | Token / Request | 双窗口配额（primary/secondary window） |
+| Google Antigravity | Percentage | 按模型显示剩余百分比 |
+| **Gemini CLI** | **Percentage** | API 返回 `remainingFraction` (0.0-1.0)，显示为已使用百分比 |
+| Zhipu AI / Z.ai | Token / Request | Token 限额 + MCP 配额 |
+| GitHub Copilot | Request | Premium Request 限额 |
+
+**Gemini CLI 特殊处理**:
+- API 返回 `buckets[]` 数组，每个 bucket 包含 `modelId`, `remainingFraction`, `resetTime`
+- `remainingFraction` 是**剩余比例**（0.0-1.0），不是具体请求次数
+- 显示为已使用百分比: `(1 - remainingFraction) * 100`
+- 支持 20+ 模型映射（`gemini-3-pro-preview` → "Gemini 3 Pro"）
 
 ### 数据流示例
 

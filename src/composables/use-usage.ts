@@ -1,11 +1,11 @@
 import { defineService, ref, watchEffect } from 'reactive-vscode'
-import { window } from 'vscode'
+import { ConfigurationTarget, window } from 'vscode'
 import type { Account, Provider, ProviderId, StoredAccount, UsageCategory } from '../types'
 import { getAllProviderDefinitions } from '../providers'
 import { t } from '../i18n'
 import { useAccounts } from './use-accounts'
 import { config, DEFAULT_AUTO_REFRESH } from './use-config'
-import { refreshGoogleToken, refreshOpenAIToken, getGitHubAccessToken } from '../utils/auth-helpers'
+import { refreshGoogleToken, refreshOpenAIToken, getGitHubAccessToken, refreshGeminiCliToken } from '../utils/auth-helpers'
 
 export const useUsage = defineService(() => {
   const { getAccountsByProvider } = useAccounts()
@@ -290,6 +290,170 @@ export const useUsage = defineService(() => {
     }
   }
 
+  async function fetchGeminiCliUsage(account: StoredAccount): Promise<Account | null> {
+    let credentialData: { accessToken?: string; refreshToken?: string }
+    try {
+      credentialData = JSON.parse(account.credential) as { accessToken?: string; refreshToken?: string }
+    } catch {
+      return createErrorAccount(account, 'Invalid credential format')
+    }
+
+    let accessToken = credentialData.accessToken || ''
+
+    // Try to refresh token if no access token
+    if (!accessToken && credentialData.refreshToken) {
+      const result = await refreshGeminiCliToken(account.credential)
+      if (result) {
+        accessToken = result.accessToken
+        // Update stored credential with new access token
+        const list = (config.accounts ?? []).map(a =>
+          a.id === account.id ? { ...a, credential: result.newCredential } : a
+        )
+        await config.update('accounts', list,ConfigurationTarget.Global)
+        credentialData = JSON.parse(result.newCredential) as { accessToken?: string; refreshToken?: string }
+      }
+    }
+
+    if (!accessToken) {
+      return createErrorAccount(account, 'No valid access token')
+    }
+
+    // Helper to make API calls with retry on 401
+    async function makeRequest<T>(url: string, body: object): Promise<T | null> {
+      let response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+          'User-Agent': 'gemini-cli/1.0',
+        },
+        body: JSON.stringify(body),
+      })
+
+      // Retry once with refreshed token on 401
+      if (response.status === 401 && credentialData.refreshToken) {
+        const result = await refreshGeminiCliToken(account.credential)
+        if (result) {
+          accessToken = result.accessToken
+          // Update stored credential
+          const list = (config.accounts ?? []).map(a =>
+            a.id === account.id ? { ...a, credential: result.newCredential } : a
+          )
+          await config.update('accounts', list, ConfigurationTarget.Global)
+          credentialData = JSON.parse(result.newCredential) as { accessToken?: string; refreshToken?: string }
+
+          response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`,
+              'User-Agent': 'gemini-cli/1.0',
+            },
+            body: JSON.stringify(body),
+          })
+        }
+      }
+
+      if (!response.ok) {
+        return null
+      }
+
+      return response.json() as Promise<T>
+    }
+
+    // Step 1: Get project ID
+    const loadCodeAssistUrl = 'https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist'
+    const loadCodeAssistBody = {
+      metadata: {
+        ideType: 'IDE_UNSPECIFIED',
+        platform: 'PLATFORM_UNSPECIFIED',
+        pluginType: 'GEMINI'
+      }
+    }
+
+    interface LoadCodeAssistResponse {
+      cloudaicompanionProject?: string
+    }
+
+    const loadResult = await makeRequest<LoadCodeAssistResponse>(loadCodeAssistUrl, loadCodeAssistBody)
+    if (!loadResult?.cloudaicompanionProject) {
+      return createErrorAccount(account, 'Failed to load project')
+    }
+
+    const projectId = loadResult.cloudaicompanionProject
+
+    // Step 2: Get quota
+    const quotaUrl = 'https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota'
+    const quotaBody = { project: projectId }
+
+    interface QuotaBucket {
+      modelId: string
+      remainingFraction: number
+      resetTime?: string
+    }
+
+    interface QuotaResponse {
+      buckets?: QuotaBucket[]
+    }
+
+    const quotaResult = await makeRequest<QuotaResponse>(quotaUrl, quotaBody)
+    if (!quotaResult?.buckets) {
+      return createErrorAccount(account, 'Failed to fetch quota')
+    }
+
+    // Map buckets to usage categories
+    const modelMap = new Map([
+      // Gemini 3 series (Preview)
+      ['gemini-3-pro-preview', 'Gemini 3 Pro'],
+      ['gemini-3-pro', 'Gemini 3 Pro'],
+      ['gemini-3-flash-preview', 'Gemini 3 Flash'],
+      ['gemini-3-flash', 'Gemini 3 Flash'],
+      ['gemini-3-image', 'Gemini 3 Image'],
+      // Gemini 2.5 series
+      ['gemini-2.5-pro', 'Gemini 2.5 Pro'],
+      ['gemini-2.5-pro-thinking', 'Gemini 2.5 Pro Thinking'],
+      ['gemini-2.5-flash', 'Gemini 2.5 Flash'],
+      ['gemini-2.5-flash-lite', 'Gemini 2.5 Flash Lite'],
+      // Gemini 2.0 series
+      ['gemini-2.0-flash', 'Gemini 2.0 Flash'],
+      ['gemini-2.0-flash-thinking', 'Gemini 2.0 Flash Thinking'],
+      ['gemini-2.0-flash-lite', 'Gemini 2.0 Flash Lite'],
+      ['gemini-2.0-pro', 'Gemini 2.0 Pro'],
+      // Gemini 1.5 series
+      ['gemini-1.5-pro', 'Gemini 1.5 Pro'],
+      ['gemini-1.5-flash', 'Gemini 1.5 Flash'],
+      // Legacy models
+      ['gemini-pro', 'Gemini Pro'],
+      ['gemini-ultra', 'Gemini Ultra'],
+      // Experimental/Preview models
+      ['gemini-exp-1206', 'Gemini Experimental'],
+      ['gemini-2.0-flash-exp', 'Gemini 2.0 Flash Exp'],
+      // Generic fallbacks
+      ['gemini', 'Gemini'],
+    ])
+
+    const models: UsageCategory[] = []
+    for (const bucket of quotaResult.buckets) {
+      const label = modelMap.get(bucket.modelId) || bucket.modelId
+      models.push({
+        name: label,
+        limitType: 'request',
+        used: Math.round((1 - bucket.remainingFraction) * 100),
+        total: 100,
+        percentageOnly: true,
+        resetTime: bucket.resetTime,
+      })
+    }
+
+    return {
+      id: account.id,
+      alias: account.alias,
+      credential: account.credential,
+      usage: models,
+      lastUpdated: new Date().toISOString(),
+    }
+  }
+
   function createErrorAccount(account: StoredAccount, errorMessage?: string): Account {
     return {
       id: account.id,
@@ -315,6 +479,8 @@ export const useUsage = defineService(() => {
         return fetchGoogleUsage(account)
       } else if (providerId === 'github') {
         return fetchGitHubUsage(account)
+      } else if (providerId === 'gemini-cli') {
+        return fetchGeminiCliUsage(account)
       } else {
         return fetchZhipuUsage(providerId as any, account)
       }

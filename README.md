@@ -2,8 +2,7 @@
 
 > A beautiful VS Code extension to monitor usage quotas for multiple AI providers in real-time
 
-![Preview](images/image1.png)
-![Preview](images/image2.png)
+![Preview](images/image.png)
 
 ## ✨ Why Unify Quota Monitor?
 
@@ -36,6 +35,7 @@ That's it! You can now monitor your quota usage in real-time.
 | **Zhipu AI** | Token limits, MCP quotas | API Key |
 | **Z.ai** | Token limits, MCP quotas | API Key |
 | **Google Antigravity** | Token usage, reset countdown | Google OAuth |
+| **Gemini CLI** | Usage percentage, reset countdown | Google OAuth |
 
 ---
 
@@ -72,7 +72,7 @@ That's it! You can now monitor your quota usage in real-time.
 3. Select a Provider:
    - **OpenAI**: Enter Access Token (JWT) or login via OAuth
    - **Zhipu AI / Z.ai**: Enter API Key
-   - **Google Antigravity**: Authenticate via browser OAuth
+   - **Google Antigravity / Gemini CLI**: Authenticate via browser OAuth
 4. (Optional) Set an account alias
 
 ### Managing Accounts
@@ -188,6 +188,11 @@ Issues and Pull Requests are welcome!
 ---
 
 ## 📝 Changelog
+
+### Unreleased
+- ✨ Add Gemini CLI support
+- 🎯 Support for Gemini 3/2.5/2.0/1.5 series models
+- 🔐 Google OAuth authentication for Gemini CLI
 
 ### 0.0.1 (2025-01-23)
 - ✨ Initial release
