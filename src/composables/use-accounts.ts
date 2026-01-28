@@ -1,9 +1,10 @@
 import { computed } from 'reactive-vscode'
 import { ConfigurationTarget } from 'vscode'
 import type { ProviderId, StoredAccount } from '../types'
-import { config } from './use-config'
+import { useConfig } from './use-config'
 
 export function useAccounts() {
+  const config = useConfig()
   const accounts = computed(() => config.accounts ?? [])
 
   function getAccounts(): StoredAccount[] {

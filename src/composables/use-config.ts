@@ -6,7 +6,7 @@ export interface Config {
   autoRefresh: AutoRefreshConfig
 }
 
-export const config = defineConfig<Config>('unifyQuotaMonitor')
+const config = defineConfig<Config>('unifyQuotaMonitor')
 
 export function useConfig() {
   return config
@@ -15,5 +15,5 @@ export function useConfig() {
 // 默认值
 export const DEFAULT_AUTO_REFRESH: AutoRefreshConfig = {
   enabled: true,
-  intervalMs: 180000,
+  intervalMs: 180000
 }

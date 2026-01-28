@@ -1,18 +1,34 @@
 import { computed, useWebviewView } from 'reactive-vscode'
-import { env, QuickPickItemKind, QuickPickItem, window, ConfigurationTarget } from 'vscode'
+import {
+  env,
+  QuickPickItemKind,
+  QuickPickItem,
+  window,
+  ConfigurationTarget
+} from 'vscode'
 import type { ProviderId } from '../types'
 import { getAllProviderDefinitions, getProviderDefinition } from '../providers'
 import { t } from '../i18n'
 import { useUsage } from './use-usage'
-import { config } from './use-config'
-import { loginWithGoogle, loginWithOpenAI, loginWithOpenAIToken, loginWithApiKey, loginWithGitHub, loginWithGeminiCli } from '../utils/auth-helpers'
+import { useConfig } from './use-config'
+import {
+  loginWithGoogle,
+  loginWithOpenAI,
+  loginWithOpenAIToken,
+  loginWithApiKey,
+  loginWithGitHub,
+  loginWithGeminiCli
+} from '../utils/auth-helpers'
 
 export function useView() {
+  const config = useConfig()
   const { providers, hasLoadedOnce } = useUsage()
 
   const html = computed(() => {
     const providerList = providers.value
-    const hasAccounts = providerList.some(p => p.accounts && p.accounts.length > 0)
+    const hasAccounts = providerList.some(
+      (p) => p.accounts && p.accounts.length > 0
+    )
     const htmlLocale = env.language || 'en'
 
     const showEmptyState = !hasAccounts && hasLoadedOnce.value
@@ -262,7 +278,9 @@ export function useView() {
 
   function renderEmptyState(): string {
     const title = t('No Active Account')
-    const description = t('Click icon buttons in the top right to manage accounts')
+    const description = t(
+      'Click icon buttons in the top right to manage accounts'
+    )
 
     const svg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
         <path d="M18 20V10" />
@@ -281,8 +299,10 @@ export function useView() {
 
   function renderProviders(providerList: any[], locale: string): string {
     return providerList
-      .filter(p => p.accounts && Array.isArray(p.accounts) && p.accounts.length > 0)
-      .map(p => renderProvider(p, locale))
+      .filter(
+        (p) => p.accounts && Array.isArray(p.accounts) && p.accounts.length > 0
+      )
+      .map((p) => renderProvider(p, locale))
       .join('')
   }
 
@@ -299,9 +319,15 @@ export function useView() {
     `
   }
 
-  function renderAccount(account: any, locale: string, showLabel: boolean): string {
+  function renderAccount(
+    account: any,
+    locale: string,
+    showLabel: boolean
+  ): string {
     const accountLabel = account.alias || account.id
-    const errorHtml = account.error ? `<div class="account-error">${account.error}</div>` : ''
+    const errorHtml = account.error
+      ? `<div class="account-error">${account.error}</div>`
+      : ''
 
     if (!showLabel) {
       return `
@@ -326,7 +352,7 @@ export function useView() {
   }
 
   function renderUsageItem(usage: any): string {
-    const percentage = usage.total > 0 ? (usage.used / usage.total) : 0
+    const percentage = usage.total > 0 ? usage.used / usage.total : 0
     const usedPercent = Math.min(100, Math.round(percentage * 100))
 
     let statusColorClass = ''
@@ -398,14 +424,18 @@ export function useView() {
 
   const { view } = useWebviewView('unifyQuotaMonitor.usageView', html, {
     webviewOptions: {
-      enableScripts: true,
-    },
+      enableScripts: true
+    }
   })
 
   async function showAccountMenu() {
     const accounts = config.accounts ?? []
-    
-    const items: (QuickPickItem & { action?: string; accountId?: string; providerId?: ProviderId })[] = []
+
+    const items: (QuickPickItem & {
+      action?: string
+      accountId?: string
+      providerId?: ProviderId
+    })[] = []
 
     if (accounts.length > 0) {
       for (const account of accounts) {
@@ -430,7 +460,7 @@ export function useView() {
     } as any)
 
     const selected = await window.showQuickPick(items as QuickPickItem[], {
-      title: t('Manage Accounts'),
+      title: t('Settings'),
       placeHolder: t('Manage accounts or add new Provider')
     })
 
@@ -438,23 +468,29 @@ export function useView() {
 
     if ((selected as any).action === 'addProvider') {
       await addProviderAccount()
-    } else if ((selected as any).action === 'manageAccount' && (selected as any).accountId) {
+    } else if (
+      (selected as any).action === 'manageAccount' &&
+      (selected as any).accountId
+    ) {
       await showAccountActions((selected as any).accountId)
     }
   }
 
   async function addProviderAccount() {
     const providers = getAllProviderDefinitions()
-    const items = providers.map((p) => ({
-      label: p.name,
-      description:
-        p.auth.type === 'oauth'
-          ? 'OAuth Login'
-          : p.auth.type === 'key'
-            ? 'API Key'
-            : 'Access Token',
-      providerId: p.id
-    } as QuickPickItem & { providerId: ProviderId }))
+    const items = providers.map(
+      (p) =>
+        ({
+          label: p.name,
+          description:
+            p.auth.type === 'oauth'
+              ? 'OAuth Login'
+              : p.auth.type === 'key'
+                ? 'API Key'
+                : 'Access Token',
+          providerId: p.id
+        }) as QuickPickItem & { providerId: ProviderId }
+    )
 
     const selected = await window.showQuickPick(items as QuickPickItem[], {
       title: t('Select Provider'),
@@ -469,9 +505,9 @@ export function useView() {
   async function addAccount(providerId: ProviderId) {
     let credential: string
 
-    if (providerId === 'google') {
+    if (providerId === 'google-antigravity') {
       credential = await loginWithGoogle()
-    } else if (providerId === 'github') {
+    } else if (providerId === 'github-copilot') {
       credential = await loginWithGitHub()
     } else if (providerId === 'gemini-cli') {
       credential = await loginWithGeminiCli()
@@ -498,7 +534,7 @@ export function useView() {
   }
 
   async function showAccountActions(accountId: string) {
-    const account = (config.accounts ?? []).find(a => a.id === accountId)
+    const account = (config.accounts ?? []).find((a) => a.id === accountId)
     if (!account) return
 
     const providerDef = getProviderDefinition(account.providerId)
@@ -543,7 +579,7 @@ export function useView() {
   }
 
   async function setAccountAlias(accountId: string) {
-    const account = (config.accounts ?? []).find(a => a.id === accountId)
+    const account = (config.accounts ?? []).find((a) => a.id === accountId)
     if (!account) return
 
     const alias = await window.showInputBox({
@@ -555,19 +591,19 @@ export function useView() {
 
     if (alias === undefined) return
 
-    const list = (config.accounts ?? []).map(a => 
+    const list = (config.accounts ?? []).map((a) =>
       a.id === accountId ? { ...a, alias: alias || undefined } : a
     )
     await config.update('accounts', list, ConfigurationTarget.Global)
   }
 
   async function reloginAccount(accountId: string) {
-    const account = (config.accounts ?? []).find(a => a.id === accountId)
+    const account = (config.accounts ?? []).find((a) => a.id === accountId)
     if (!account) return
 
     let credential: string
 
-    if (account.providerId === 'google') {
+    if (account.providerId === 'google-antigravity') {
       credential = await loginWithGoogle()
     } else if (account.providerId === 'gemini-cli') {
       credential = await loginWithGeminiCli()
@@ -584,14 +620,14 @@ export function useView() {
       credential = await loginWithApiKey(account.providerId as 'zhipu' | 'zai')
     }
 
-    const list = (config.accounts ?? []).map(a => 
+    const list = (config.accounts ?? []).map((a) =>
       a.id === accountId ? { ...a, credential } : a
     )
     await config.update('accounts', list, ConfigurationTarget.Global)
   }
 
   async function deleteAccount(accountId: string) {
-    const account = (config.accounts ?? []).find(a => a.id === accountId)
+    const account = (config.accounts ?? []).find((a) => a.id === accountId)
     if (!account) return
 
     const providerDef = getProviderDefinition(account.providerId)
@@ -612,7 +648,7 @@ export function useView() {
       return
     }
 
-    const list = (config.accounts ?? []).filter(a => a.id !== accountId)
+    const list = (config.accounts ?? []).filter((a) => a.id !== accountId)
     await config.update('accounts', list, ConfigurationTarget.Global)
 
     window.showInformationMessage(
@@ -650,13 +686,15 @@ export function useView() {
   async function inputAlias(): Promise<string | undefined> {
     return window.showInputBox({
       title: t('Account Alias (Optional)'),
-      prompt: t('Set an alias for this account to distinguish multiple accounts'),
-      placeHolder: t('e.g. Work, Personal, Team, etc.'),
+      prompt: t(
+        'Set an alias for this account to distinguish multiple accounts'
+      ),
+      placeHolder: t('e.g. Work, Personal, Team, etc.')
     })
   }
 
   return {
     view,
-    showAccountMenu,
+    showAccountMenu
   }
 }

@@ -1,4 +1,4 @@
-export type ProviderId = 'openai' | 'zhipu' | 'zai' | 'google' | 'github' | 'gemini-cli'
+export type ProviderId = 'openai' | 'zhipu' | 'zai' | 'google-antigravity' | 'github-copilot' | 'gemini-cli'
 
 export interface UsageCategory {
   name: string

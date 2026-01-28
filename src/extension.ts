@@ -14,7 +14,7 @@ export = defineExtension(() => {
   const usage = useUsage()
   const view = useView()
 
-  useCommand('unifyQuotaMonitor.manageAccounts', () => view.showAccountMenu())
+  useCommand('unifyQuotaMonitor.settings', () => view.showAccountMenu())
   useCommand('unifyQuotaMonitor.refresh', () => usage.refresh())
 
   usage.startAutoRefresh()

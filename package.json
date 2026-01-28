@@ -43,7 +43,23 @@
               },
               "providerId": {
                 "type": "string",
-                "markdownDescription": "%configuration.accounts.providerId.markdownDescription%"
+                "markdownDescription": "%configuration.accounts.providerId.markdownDescription%",
+                "enum": [
+                  "openai",
+                  "google-antigravity",
+                  "github-copilot",
+                  "gemini-cli",
+                  "zhipu",
+                  "zai"
+                ],
+                "enumDescriptions": [
+                  "OpenAI",
+                  "Google Antigravity",
+                  "GitHub Copilot",
+                  "Gemini CLI",
+                  "Zhipu AI (智谱 AI)",
+                  "Z.ai"
+                ]
               },
               "alias": {
                 "type": "string",
@@ -83,14 +99,14 @@
     },
     "commands": [
       {
-        "command": "unifyQuotaMonitor.manageAccounts",
-        "title": "%command.manageAccounts.title%",
-        "icon": "$(plus)"
-      },
-      {
         "command": "unifyQuotaMonitor.refresh",
         "title": "%command.refresh.title%",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "unifyQuotaMonitor.settings",
+        "title": "%command.settings.title%",
+        "icon": "$(gear)"
       }
     ],
     "viewsContainers": {
@@ -118,12 +134,12 @@
         {
           "command": "unifyQuotaMonitor.refresh",
           "when": "view == unifyQuotaMonitor.usageView",
-          "group": "navigation"
+          "group": "navigation@1"
         },
         {
-          "command": "unifyQuotaMonitor.manageAccounts",
+          "command": "unifyQuotaMonitor.settings",
           "when": "view == unifyQuotaMonitor.usageView",
-          "group": "navigation"
+          "group": "navigation@2"
         }
       ]
     }

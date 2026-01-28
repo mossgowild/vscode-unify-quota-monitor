@@ -31,7 +31,7 @@ function getProviderDefinitions(): ProviderDefinition[] {
       },
     },
     {
-      id: 'google',
+      id: 'google-antigravity',
       name: 'Google Antigravity',
       auth: {
         required: true,
@@ -40,7 +40,7 @@ function getProviderDefinitions(): ProviderDefinition[] {
       },
     },
     {
-      id: 'github',
+      id: 'github-copilot',
       name: 'GitHub Copilot',
       auth: {
         required: true,

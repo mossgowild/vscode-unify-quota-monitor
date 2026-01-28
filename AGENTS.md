@@ -81,11 +81,11 @@ View (useView) → Model (config) → Controller (useUsage) → View (useView)
 | ID | 名称 | 认证方式 | 存储内容 |
 |---|---|---|---|
 | `openai` | OpenAI | OAuth / Token | refresh_token (OAuth) 或 accessToken (JWT) |
-| `google` | Google Antigravity | OAuth | refresh_token (端口 51121) |
+| `google-antigravity` | Google Antigravity | OAuth | refresh_token (端口 51121) |
 | `gemini-cli` | Gemini CLI | OAuth | accessToken + refresh_token (端口 51121) |
 | `zhipu` | Zhipu AI | API Key | API Key |
 | `zai` | Z.ai | API Key | API Key |
-| `github` | GitHub Copilot | OAuth | VS Code authentication.getSession() |
+| `github-copilot` | GitHub Copilot | OAuth | VS Code authentication.getSession() |
 
 ### 核心特性
 
@@ -148,3 +148,20 @@ setInterval(intervalMs) → usage.refresh() → 重新获取所有账号用量
 ## 维护指南
 
 - **配置默认值同步**: 修改配置的默认值时，必须同时更新 `package.json` 中的 `configuration` 默认值和 `src/composables/use-config.ts` 中的常量定义，确保两者一致。
+
+## Agent Skills
+
+本项目包含用于辅助开发的 Agent Skills，位于 `.claude/skills/` 目录：
+
+| Skill | 用途 |
+|-------|------|
+| `vscode-ext-config-sync` | 指导 VS Code 扩展配置变更时的文件联动同步，包括 Provider ID、命令、视图、配置项等变更 |
+
+使用方式：当需要修改配置相关内容时，Agent 会自动应用此 Skill 的联动规则，确保所有相关文件同步更新。
+
+### 支持的命令
+
+| 命令 ID | 标题 | 图标 | 说明 |
+|---------|------|------|------|
+| `unifyQuotaMonitor.refresh` | Refresh / 刷新 | $(refresh) | 刷新配额数据 |
+| `unifyQuotaMonitor.settings` | Settings / 设置 | $(gear) | 打开账号设置菜单 |
