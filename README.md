@@ -163,14 +163,18 @@ code .
 
 ### Configuration Fields
 
-**unifyQuotaMonitor.accounts** (Auto-managed by extension, no manual editing needed)
+**unifyQuotaMonitor.providers** (Auto-managed by extension, no manual editing needed)
 ```json
 [
   {
-    "id": "openai-xxx...",
-    "providerId": "openai",
-    "alias": "Work",
-    "credential": "sk-xxx..."
+    "provider": "openai",
+    "name": "OpenAI Group",
+    "accounts": [
+      {
+        "credential": "sk-xxx...",
+        "name": "Work Account"
+      }
+    ]
   }
 ]
 ```

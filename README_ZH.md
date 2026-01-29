@@ -162,14 +162,18 @@ code .
 
 ### 配置项说明
 
-**unifyQuotaMonitor.accounts** (由扩展自动管理，无需手动编辑)
+**unifyQuotaMonitor.providers** (由扩展自动管理，无需手动编辑)
 ```json
 [
   {
-    "id": "openai-xxx...",
-    "providerId": "openai",
-    "alias": "Work",
-    "credential": "sk-xxx..."
+    "provider": "openai",
+    "name": "OpenAI 分组",
+    "accounts": [
+      {
+        "credential": "sk-xxx...",
+        "name": "工作账号"
+      }
+    ]
   }
 ]
 ```

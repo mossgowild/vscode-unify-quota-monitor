@@ -1,8 +1,8 @@
 import { defineConfig } from 'reactive-vscode'
-import type { AutoRefreshConfig, StoredAccount } from '../types'
+import type { AutoRefreshConfig, ProviderConfig } from '../types'
 
 export interface Config {
-  accounts: StoredAccount[]
+  providers: ProviderConfig[]
   autoRefresh: AutoRefreshConfig
 }
 

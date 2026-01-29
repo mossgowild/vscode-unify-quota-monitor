@@ -3,13 +3,13 @@ import {
   env,
   QuickPickItemKind,
   QuickPickItem,
-  window,
-  ConfigurationTarget
+  window
 } from 'vscode'
 import type { ProviderId } from '../types'
 import { getAllProviderDefinitions, getProviderDefinition } from '../providers'
 import { t } from '../i18n'
 import { useUsage } from './use-usage'
+import { useAccounts } from './use-accounts'
 import { useConfig } from './use-config'
 import {
   loginWithGoogle,
@@ -21,7 +21,13 @@ import {
 } from '../utils/auth-helpers'
 
 export function useView() {
-  const config = useConfig()
+  const { 
+    getAccounts, 
+    addAccount: addAccountToConfig, 
+    deleteAccount: deleteAccountConfig, 
+    updateAccountName, 
+    updateCredential 
+  } = useAccounts()
   const { providers, hasLoadedOnce } = useUsage()
 
   const html = computed(() => {
@@ -429,7 +435,7 @@ export function useView() {
   })
 
   async function showAccountMenu() {
-    const accounts = config.accounts ?? []
+    const accounts = getAccounts()
 
     const items: (QuickPickItem & {
       action?: string
@@ -527,14 +533,11 @@ export function useView() {
     const alias = await inputAlias()
     if (alias === undefined) return
 
-    const list = [...(config.accounts ?? [])]
-    const id = `${providerId}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`
-    list.push({ id, providerId, credential, alias })
-    await config.update('accounts', list, ConfigurationTarget.Global)
+    await addAccountToConfig(providerId, credential, alias)
   }
 
   async function showAccountActions(accountId: string) {
-    const account = (config.accounts ?? []).find((a) => a.id === accountId)
+    const account = getAccounts().find((a) => a.id === accountId)
     if (!account) return
 
     const providerDef = getProviderDefinition(account.providerId)
@@ -579,7 +582,7 @@ export function useView() {
   }
 
   async function setAccountAlias(accountId: string) {
-    const account = (config.accounts ?? []).find((a) => a.id === accountId)
+    const account = getAccounts().find((a) => a.id === accountId)
     if (!account) return
 
     const alias = await window.showInputBox({
@@ -591,14 +594,11 @@ export function useView() {
 
     if (alias === undefined) return
 
-    const list = (config.accounts ?? []).map((a) =>
-      a.id === accountId ? { ...a, alias: alias || undefined } : a
-    )
-    await config.update('accounts', list, ConfigurationTarget.Global)
+    await updateAccountName(accountId, alias)
   }
 
   async function reloginAccount(accountId: string) {
-    const account = (config.accounts ?? []).find((a) => a.id === accountId)
+    const account = getAccounts().find((a) => a.id === accountId)
     if (!account) return
 
     let credential: string
@@ -620,14 +620,11 @@ export function useView() {
       credential = await loginWithApiKey(account.providerId as 'zhipu' | 'zai')
     }
 
-    const list = (config.accounts ?? []).map((a) =>
-      a.id === accountId ? { ...a, credential } : a
-    )
-    await config.update('accounts', list, ConfigurationTarget.Global)
+    await updateCredential(accountId, credential)
   }
 
   async function deleteAccount(accountId: string) {
-    const account = (config.accounts ?? []).find((a) => a.id === accountId)
+    const account = getAccounts().find((a) => a.id === accountId)
     if (!account) return
 
     const providerDef = getProviderDefinition(account.providerId)
@@ -648,8 +645,7 @@ export function useView() {
       return
     }
 
-    const list = (config.accounts ?? []).filter((a) => a.id !== accountId)
-    await config.update('accounts', list, ConfigurationTarget.Global)
+    await deleteAccountConfig(accountId)
 
     window.showInformationMessage(
       t('Logged out from {providerName} - {accountLabel}', {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { env, window, Uri, authentication } from 'vscode'
 import { t } from '../i18n'
 import {

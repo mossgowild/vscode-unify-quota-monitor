@@ -1,6 +1,6 @@
 import { defineService, ref, watchEffect } from 'reactive-vscode'
-import { ConfigurationTarget, window } from 'vscode'
-import type { Account, Provider, ProviderId, StoredAccount, UsageCategory } from '../types'
+import { window } from 'vscode'
+import type { Account, Provider, ProviderId, UsageCategory } from '../types'
 import { getAllProviderDefinitions } from '../providers'
 import { t } from '../i18n'
 import { useAccounts } from './use-accounts'
@@ -13,7 +13,7 @@ import {
 } from '../utils/auth-helpers'
 
 export const useUsage = defineService(() => {
-  const { getAccountsByProvider } = useAccounts()
+  const { getAccountsByProvider, updateCredential } = useAccounts()
   const config = useConfig()
   const providers = ref<Provider[]>([])
   const isRefreshing = ref(false)
@@ -28,7 +28,7 @@ export const useUsage = defineService(() => {
   }
 
   async function getAccessToken(
-    account: StoredAccount
+    account: Pick<Account, 'id' | 'credential'> & { providerId?: ProviderId }
   ): Promise<string | null> {
     if (account.providerId === 'google-antigravity') {
       try {
@@ -60,7 +60,7 @@ export const useUsage = defineService(() => {
   }
 
   async function fetchGitHubUsage(
-    account: StoredAccount
+    account: Pick<Account, 'id' | 'alias' | 'credential'>
   ): Promise<Account | null> {
     const githubToken = await getGitHubAccessToken()
     if (!githubToken) {
@@ -130,7 +130,7 @@ export const useUsage = defineService(() => {
   }
 
   async function fetchOpenAIUsage(
-    account: StoredAccount
+    account: Pick<Account, 'id' | 'alias' | 'credential'> & { providerId?: ProviderId }
   ): Promise<Account | null> {
     const token = await getAccessToken(account)
     if (!token) return createErrorAccount(account)
@@ -205,7 +205,7 @@ export const useUsage = defineService(() => {
 
   async function fetchZhipuUsage(
     providerId: 'zhipu' | 'zai',
-    account: StoredAccount
+    account: Pick<Account, 'id' | 'alias' | 'credential'>
   ): Promise<Account | null> {
     const apiKey = account.credential
     const url =
@@ -267,7 +267,7 @@ export const useUsage = defineService(() => {
   }
 
   async function fetchGoogleUsage(
-    account: StoredAccount
+    account: Pick<Account, 'id' | 'alias' | 'credential'> & { providerId?: ProviderId }
   ): Promise<Account | null> {
     const token = await getAccessToken(account)
     if (!token) return createErrorAccount(account)
@@ -321,7 +321,7 @@ export const useUsage = defineService(() => {
   }
 
   async function fetchGeminiCliUsage(
-    account: StoredAccount
+    account: Pick<Account, 'id' | 'alias' | 'credential'>
   ): Promise<Account | null> {
     let credentialData: { accessToken?: string; refreshToken?: string }
     try {
@@ -341,10 +341,7 @@ export const useUsage = defineService(() => {
       if (result) {
         accessToken = result.accessToken
         // Update stored credential with new access token
-        const list = (config.accounts ?? []).map((a) =>
-          a.id === account.id ? { ...a, credential: result.newCredential } : a
-        )
-        await config.update('accounts', list, ConfigurationTarget.Global)
+        await updateCredential(account.id, result.newCredential)
         credentialData = JSON.parse(result.newCredential) as {
           accessToken?: string
           refreshToken?: string
@@ -377,10 +374,7 @@ export const useUsage = defineService(() => {
         if (result) {
           accessToken = result.accessToken
           // Update stored credential
-          const list = (config.accounts ?? []).map((a) =>
-            a.id === account.id ? { ...a, credential: result.newCredential } : a
-          )
-          await config.update('accounts', list, ConfigurationTarget.Global)
+          await updateCredential(account.id, result.newCredential)
           credentialData = JSON.parse(result.newCredential) as {
             accessToken?: string
             refreshToken?: string
@@ -504,7 +498,7 @@ export const useUsage = defineService(() => {
   }
 
   function createErrorAccount(
-    account: StoredAccount,
+    account: Pick<Account, 'id' | 'alias' | 'credential'>,
     errorMessage?: string
   ): Account {
     return {
@@ -579,9 +573,9 @@ export const useUsage = defineService(() => {
   }
 
   watchEffect(() => {
-    // Access config.accounts to track dependencies
+    // Access config.providers to track dependencies
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _ = config.accounts
+    const _ = config.providers
     debouncedRefresh()
   })
 

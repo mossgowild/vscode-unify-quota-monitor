@@ -30,20 +30,16 @@
     "configuration": {
       "title": "%configuration.title%",
       "properties": {
-        "unifyQuotaMonitor.accounts": {
+        "unifyQuotaMonitor.providers": {
           "type": "array",
           "default": [],
-          "markdownDescription": "%configuration.accounts.markdownDescription%",
+          "markdownDescription": "%configuration.providers.markdownDescription%",
           "items": {
             "type": "object",
             "properties": {
-              "id": {
+              "provider": {
                 "type": "string",
-                "markdownDescription": "%configuration.accounts.id.markdownDescription%"
-              },
-              "providerId": {
-                "type": "string",
-                "markdownDescription": "%configuration.accounts.providerId.markdownDescription%",
+                "markdownDescription": "%configuration.providers.provider.markdownDescription%",
                 "enum": [
                   "openai",
                   "google-antigravity",
@@ -61,19 +57,34 @@
                   "Z.ai"
                 ]
               },
-              "alias": {
+              "name": {
                 "type": "string",
-                "markdownDescription": "%configuration.accounts.alias.markdownDescription%"
+                "markdownDescription": "%configuration.providers.name.markdownDescription%"
               },
-              "credential": {
-                "type": "string",
-                "markdownDescription": "%configuration.accounts.credential.markdownDescription%"
+              "accounts": {
+                "type": "array",
+                "markdownDescription": "%configuration.providers.accounts.markdownDescription%",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "credential": {
+                      "type": "string",
+                      "markdownDescription": "%configuration.providers.accounts.credential.markdownDescription%"
+                    },
+                    "name": {
+                      "type": "string",
+                      "markdownDescription": "%configuration.providers.accounts.name.markdownDescription%"
+                    }
+                  },
+                  "required": [
+                    "credential"
+                  ]
+                }
               }
             },
             "required": [
-              "id",
-              "providerId",
-              "credential"
+              "provider",
+              "accounts"
             ]
           }
         },

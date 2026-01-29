@@ -6,7 +6,7 @@
 
 ### 数据流向
 
-1.  **View (useView)**: 用户操作 → 调用工具函数获取凭证 → 直接更新 `config` (Model)
+1.  **View (useView)**: 用户操作 → 调用工具函数获取凭证 → 调用 `useAccounts` 更新配置 (Model)
 2.  **Model (config)**: 配置数据发生变化 (Reactivity)
 3.  **Controller (useUsage)**: `watchEffect` 监听到 `config` 变化 → 自动重新计算/拉取数据 → 更新 `providers` (Computed)
 4.  **View (useView)**: `html` (Computed) 依赖 `providers` → 自动重新渲染 Webview
@@ -52,11 +52,11 @@
   - `computed`: 派生状态（accounts, html）
   - `watchEffect`: 自动响应配置变化
 
-- **Reactivity**: 任何配置项 (`accounts`, `autoRefresh`) 的变化都会自动触发数据刷新和 UI 重绘，无需手动调用 `refresh`
+- **Reactivity**: 任何配置项 (`providers`, `autoRefresh`) 的变化都会自动触发数据刷新和 UI 重绘，无需手动调用 `refresh`
   ```typescript
   // use-usage.ts 中
   watchEffect(() => {
-    // config.accounts 或 config.autoRefresh 变化时自动执行
+    // config.providers 或 config.autoRefresh 变化时自动执行
     fetchAllUsage()
   })
   ```

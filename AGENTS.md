@@ -28,12 +28,12 @@ npx eslint
 ```
 src/
 ├── extension.ts          # 插件入口，按顺序初始化 Composables
-├── types.ts              # 核心类型定义（ProviderId, UsageCategory, Account, StoredAccount）
+├── types.ts              # 核心类型定义（ProviderId, UsageCategory, Account, ProviderConfig）
 ├── providers.ts          # Provider 静态元数据定义（getProviderDefinition）
 ├── i18n.ts               # 国际化工具（封装 vscode.l10n）
 ├── composables/
 │   ├── use-config.ts     # Model 层基础 - defineConfig 定义配置接口
-│   ├── use-accounts.ts   # Model 层辅助 - 账号 CRUD 封装（computed, ConfigurationTarget）
+│   ├── use-accounts.ts   # Model 层辅助 - 账号 CRUD 封装（computed, ConfigurationTarget, Migration）
 │   ├── use-usage.ts      # Controller 层 - defineService，数据获取与自动刷新
 │   └── use-view.ts       # View 层 - useWebviewView，HTML 生成与 UI 交互
 └── utils/
@@ -72,8 +72,8 @@ View (useView) → Model (config) → Controller (useUsage) → View (useView)
 |---|---|---|---|---|
 | View | `useView` | useWebviewView | `useUsage`, `config`, `utils` | HTML 模板生成、QuickPick 菜单、写入配置 |
 | Controller | `useUsage` | defineService | `useAccounts`, `utils` | API 请求、watchEffect 自动刷新 |
-| Model | `useAccounts` | - | `useConfig` | computed 账号列表、CRUD 封装 |
-| Model | `useConfig` | defineConfig | 无 | 配置接口定义（accounts, autoRefresh） |
+| Model | `useAccounts` | - | `useConfig` | computed 账号列表、CRUD 封装、旧配置迁移 |
+| Model | `useConfig` | defineConfig | 无 | 配置接口定义（providers, autoRefresh） |
 | Utils | `utils/` | - | 无 | OAuth 流程、PKCE、HTTP Server |
 
 ### 支持的 Provider
@@ -114,10 +114,10 @@ View (useView) → Model (config) → Controller (useUsage) → View (useView)
 
 ```typescript
 // 用户添加账号
-view.showAccountMenu() → loginWithGoogle() → config.update('accounts', [...])
+view.showAccountMenu() → loginWithGoogle() → useAccounts.addAccount() → config.update('providers', [...])
 
 // 自动响应
-config.accounts 变化 → watchEffect 触发 → useUsage.fetchAllUsage() → providers 更新 → html 重新计算
+config.providers 变化 → watchEffect 触发 → useUsage.fetchAllUsage() → providers 更新 → html 重新计算
 
 // 自动刷新
 setInterval(intervalMs) → usage.refresh() → 重新获取所有账号用量

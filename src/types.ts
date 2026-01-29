@@ -25,11 +25,15 @@ export interface Provider extends ProviderDefinition {
   accounts: Account[]
 }
 
-export interface StoredAccount {
-  id: string
-  providerId: ProviderId
-  alias?: string
+export interface ConfigAccount {
   credential: string
+  name?: string
+}
+
+export interface ProviderConfig {
+  provider: ProviderId
+  name?: string
+  accounts: ConfigAccount[]
 }
 
 export interface Account {
