@@ -1,0 +1,82 @@
+import type { FetchUsageResult, UsageCategory } from '../../types'
+import { getGitHubAccessToken } from '../auth/github'
+
+export async function fetchGitHubCopilotUsage(): Promise<FetchUsageResult> {
+  const githubToken = await getGitHubAccessToken()
+  if (!githubToken) {
+    return {
+      success: false,
+      usage: [],
+      error: 'No GitHub token. Please re-login.',
+      lastUpdated: new Date().toISOString()
+    }
+  }
+
+  try {
+    const response = await fetch(
+      'https://api.github.com/copilot_internal/user',
+      {
+        headers: {
+          Authorization: `token ${githubToken}`,
+          'User-Agent': 'GitHubCopilotChat/0.24.0',
+          'Editor-Version': 'vscode/1.97.0',
+          'Editor-Plugin-Version': 'copilot-chat/0.24.0',
+          'Copilot-Integration-Id': 'vscode-chat',
+          'X-GitHub-Api-Version': '2023-07-07'
+        }
+      }
+    )
+
+    if (!response.ok) {
+      return {
+        success: false,
+        usage: [],
+        error: `API Error: ${response.status} ${response.statusText}`,
+        lastUpdated: new Date().toISOString()
+      }
+    }
+
+    const data = (await response.json()) as any
+    const usage: UsageCategory[] = []
+
+    const interactions =
+      data.quota_snapshots?.premium_interactions ||
+      data.premium_interactions ||
+      data.user_copilot?.premium_interactions
+
+    if (interactions) {
+      const limit = interactions.entitlement || interactions.limit || 0
+      const remaining = interactions.remaining || 0
+      const used = limit - remaining
+
+      usage.push({
+        name: 'Premium Request',
+        limitType: 'request',
+        used: used,
+        total: limit,
+        resetTime: interactions.reset_date || interactions.next_reset_date
+      })
+    } else {
+      const keys = Object.keys(data).join(', ')
+      return {
+        success: false,
+        usage: [],
+        error: `No usage data. Keys: ${keys}`,
+        lastUpdated: new Date().toISOString()
+      }
+    }
+
+    return {
+      success: true,
+      usage,
+      lastUpdated: new Date().toISOString()
+    }
+  } catch (e: any) {
+    return {
+      success: false,
+      usage: [],
+      error: `Error: ${e.message || e}`,
+      lastUpdated: new Date().toISOString()
+    }
+  }
+}

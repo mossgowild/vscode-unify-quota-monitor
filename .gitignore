@@ -25,5 +25,4 @@ Thumbs.db
 # TypeScript incremental build cache
 *.tsbuildinfo
 *.vsix
-.mcp-debug-tools
 .worktrees

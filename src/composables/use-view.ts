@@ -10,13 +10,11 @@ import { getAllProviderDefinitions, getProviderDefinition } from '../providers'
 import { useUsage } from './use-usage'
 import { useAccounts } from './use-accounts'
 import { useConfig } from './use-config'
-import {
-  loginWithGoogle,
-  loginWithApiKey,
-  loginWithGitHub,
-  loginWithGeminiCli
-} from '../utils/key-helpers'
-import { checkClaudeCodeInstalled } from '../utils/local-helpers'
+import { loginWithAntigravity } from '../utils/auth/antigravity'
+import { loginWithApiKey } from '../utils/auth/api-key'
+import { loginWithGitHub } from '../utils/auth/github'
+import { loginWithGeminiCli } from '../utils/auth/gemini'
+import { checkClaudeCodeInstalled } from '../utils/usage/claude'
 
 export function useView() {
   const { 
@@ -534,7 +532,7 @@ export function useView() {
     let credential: string
 
     if (providerId === 'google-antigravity') {
-      credential = await loginWithGoogle()
+      credential = await loginWithAntigravity()
     } else if (providerId === 'github-copilot') {
       credential = await loginWithGitHub()
     } else if (providerId === 'gemini-cli') {
@@ -624,7 +622,7 @@ export function useView() {
     let credential: string
 
     if (account.providerId === 'google-antigravity') {
-      credential = await loginWithGoogle()
+      credential = await loginWithAntigravity()
     } else if (account.providerId === 'gemini-cli') {
       credential = await loginWithGeminiCli()
     } else if (account.providerId === 'claude-code') {

@@ -24,7 +24,7 @@
 ### 实现细节
 
 ```typescript
-// auth-helpers.ts
+// src/utils/google-auth.ts
 export async function loginWithGoogle(): Promise<string> {
   const state = Math.random().toString(36).substring(7)
   const authUrl = new URL(GOOGLE_OAUTH.authUrl)
@@ -36,38 +36,6 @@ export async function loginWithGoogle(): Promise<string> {
   const tokens = await exchangeGoogleCode(result)
 
   return tokens.refresh_token
-}
-```
-
-## OpenAI OAuth
-
-### 配置
-
-- **本地端口**: 1455
-- **功能**: 支持 PKCE (Proof Key for Code Exchange)
-- **存储**: refresh_token（JSON 格式，包含 accessToken）
-
-### 流程
-
-1. 生成 PKCE code verifier 和 challenge
-2. 生成随机 state
-3. 构建授权 URL（包含 code_challenge 和 code_challenge_method）
-4. 使用 `env.openExternal()` 打开浏览器
-5. 本地 HTTP Server 监听端口 1455
-6. 自动捕获回调中的授权码
-7. 使用 code verifier 交换获取 refresh_token
-
-### PKCE 实现
-
-```typescript
-// oauth-helpers.ts
-export function generatePkce() {
-  const verifier = generateRandomString(43)
-  const challenge = crypto
-    .createHash('sha256')
-    .update(verifier)
-    .digest('base64url')
-  return { verifier, challenge }
 }
 ```
 
@@ -118,7 +86,7 @@ export function generatePkce() {
 使用 VS Code 的 `authentication.getSession()` API：
 
 ```typescript
-// auth-helpers.ts
+// src/utils/github-auth.ts
 export async function getGitHubAccessToken(): Promise<string | null> {
   const session = await authentication.getSession('github', ['read:user'], { createIfNone: false })
   return session?.accessToken || null
@@ -140,7 +108,7 @@ export async function getGitHubAccessToken(): Promise<string | null> {
 
 ### 实现
 
-- **位置**: `src/utils/auth-helpers.ts`
+- **位置**: `src/utils/google-auth.ts` / `src/utils/gemini-auth.ts`
 - **触发条件**: API 调用返回 401 状态码
 - **处理流程**:
   1. `useUsage` 检测到 401 错误
@@ -165,8 +133,9 @@ export async function getGitHubAccessToken(): Promise<string | null> {
 ### HTTP Server 回调
 
 - **功能**: 本地监听 OAuth 回调
-- **端口**: Google (51121), OpenAI (1455)
+- **端口**: Google/Gemini (51121)
 - **处理**: 自动提取授权码并关闭服务器
+- **实现位置**: `src/utils/oauth.ts`
 
 ## 数据存储
 

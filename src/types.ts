@@ -49,3 +49,10 @@ export interface AutoRefreshConfig {
   enabled: boolean
   intervalMs: number
 }
+
+export interface FetchUsageResult {
+  success: boolean
+  usage: UsageCategory[]
+  error?: string
+  lastUpdated: string
+}

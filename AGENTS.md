@@ -36,8 +36,18 @@ src/
 │   ├── use-usage.ts      # Controller 层 - defineService，数据获取与自动刷新
 │   └── use-view.ts       # View 层 - useWebviewView，HTML 生成与 UI 交互
 └── utils/
-    ├── key-helpers.ts    # API Key 和 OAuth 认证流程（Google OAuth, GitHub Auth, Gemini CLI）
-    └── oauth-helpers.ts  # OAuth 协议底层实现（PKCE, HTTP Server 回调）
+    ├── auth/
+    │   ├── oauth.ts      # 通用 OAuth 协议底层实现（PKCE, HTTP Server 回调）
+    │   ├── antigravity.ts # Google Antigravity OAuth 认证流程
+    │   ├── gemini.ts     # Gemini CLI OAuth 认证流程
+    │   ├── github.ts     # GitHub Copilot 认证流程
+    │   └── api-key.ts    # API Key 输入交互逻辑（Zhipu AI, Z.ai）
+    └── usage/
+        ├── google.ts     # Google Antigravity 用量 API 调用
+        ├── gemini.ts     # Gemini CLI 用量 API 调用
+        ├── github.ts     # GitHub Copilot 用量 API 调用
+        ├── zhipu.ts      # Zhipu AI / Z.ai 用量 API 调用
+        └── claude.ts     # Claude Code 本地日志读取与计费计算
 ```
 
 **初始化顺序**（extension.ts）：
@@ -93,7 +103,7 @@ View (useView) → Model (config) → Controller (useUsage) → View (useView)
   - **Provider 排序**: 面板中的 Provider 显示顺序严格遵循 `unifyQuotaMonitor.providers` 配置中的顺序
   - **配额排序**: 按照使用百分比 (Used / Total) 升序排列，即剩余配额越多越靠前
 - **防抖优化**: `useUsage` 实现防抖，避免频繁配置变化导致过多 API 请求
-- **无状态工具函数**: 认证逻辑由无状态函数处理（`loginWithGoogle`, `loginWithOpenAI`, `loginWithGeminiCli`, `loginWithGitHub`）
+- **无状态工具函数**: 认证逻辑由无状态函数处理（`loginWithAntigravity`, `loginWithApiKey`, `loginWithGeminiCli`, `loginWithGitHub`）
 - **服务单例**: `defineService` 确保 `useUsage` 全局唯一实例
 
 ### Provider 用量类型

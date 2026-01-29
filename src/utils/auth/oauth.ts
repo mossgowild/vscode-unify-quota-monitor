@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as http from 'node:http'
 import * as crypto from 'node:crypto'
 
@@ -60,26 +61,4 @@ export async function waitForOAuthCallback(
 
     server.listen(port)
   })
-}
-
-export async function exchangeGoogleCode(code: string): Promise<any> {
-  const params = new URLSearchParams()
-  params.set('client_id', '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com')
-  params.set('client_secret', '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')
-  params.set('code', code)
-  params.set('grant_type', 'authorization_code')
-  params.set('redirect_uri', 'http://localhost:51121/oauth-callback')
-
-  const response = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: params.toString()
-  })
-
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Token exchange failed: ${error}`)
-  }
-
-  return response.json()
 }

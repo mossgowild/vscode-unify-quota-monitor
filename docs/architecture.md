@@ -63,6 +63,56 @@
 
 - **Debounce**: `useUsage` 中实现了防抖逻辑，避免配置频繁变化导致过多请求
 
+## Usage 模块架构
+
+每个 Provider 的用量获取逻辑被提取为独立的工具模块，统一接口设计：
+
+```
+src/utils/usage/
+├── claude.ts      # Claude Code - 本地日志读取
+├── github.ts      # GitHub Copilot - API 调用
+├── google.ts      # Google Antigravity - Cloud API + Token 刷新
+├── gemini.ts      # Gemini CLI - Cloud API + Token 刷新 + 重试
+└── zhipu.ts       # Zhipu AI / Z.ai - API Key 认证
+```
+
+### 统一接口
+
+所有 Usage 模块遵循统一的 `FetchUsageResult` 接口：
+
+```typescript
+export interface FetchUsageResult {
+  success: boolean
+  usage: UsageCategory[]
+  error?: string
+  lastUpdated: string
+}
+```
+
+### 设计原则
+
+- **纯函数**: Usage 函数不依赖外部状态，输入 credential，返回结果
+- **Token 刷新回调**: 对于需要刷新 Token 的 Provider（Google, Gemini），通过回调函数通知调用方更新存储
+- **错误处理**: 所有错误封装在 `FetchUsageResult` 中，不抛出异常
+- **职责分离**: `use-usage.ts` 只负责协调调度，具体 API 调用逻辑下沉到 utils
+
+### 调用示例
+
+```typescript
+// use-usage.ts 中的调用方式
+const result = await fetchGitHubCopilotUsage()
+if (!result.success) {
+  return createErrorAccount(account, result.error)
+}
+return {
+  id: account.id,
+  alias: account.alias,
+  credential: account.credential,
+  usage: result.usage,
+  lastUpdated: result.lastUpdated
+}
+```
+
 ### 代码规则
 
 - **单向数据流**: 严禁下层模块调用上层模块（如 `useUsage` 不可调用 `useView`）
