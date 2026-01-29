@@ -31,11 +31,12 @@ That's it! You can now monitor your quota usage in real-time.
 
 | Provider | Quota Types | Authentication |
 |----------|-------------|----------------|
-| **OpenAI** | Token usage, reset countdown | Access Token (JWT) |
 | **Zhipu AI** | Token limits, MCP quotas | API Key |
 | **Z.ai** | Token limits, MCP quotas | API Key |
 | **Google Antigravity** | Token usage, reset countdown | Google OAuth |
 | **Gemini CLI** | Usage percentage, reset countdown | Google OAuth |
+| **GitHub Copilot** | Premium requests, reset countdown | GitHub OAuth |
+| **Claude Code** | 5-hour window usage estimation | Local log files |
 
 ---
 
@@ -72,9 +73,9 @@ That's it! You can now monitor your quota usage in real-time.
 1. Click the **Quota** icon in the sidebar
 2. Click the **$(plus)** button in the top-right corner
 3. Select a Provider:
-   - **OpenAI**: Enter Access Token (JWT) or login via OAuth
    - **Zhipu AI / Z.ai**: Enter API Key
-   - **Google Antigravity / Gemini CLI**: Authenticate via browser OAuth
+   - **Google Antigravity / Gemini CLI / GitHub Copilot**: Authenticate via browser OAuth
+   - **Claude Code**: Automatically detects local installation
 4. (Optional) Set an account alias
 
 ### Managing Accounts
@@ -190,22 +191,3 @@ Issues and Pull Requests are welcome!
 ## 📄 License
 
 [MIT](LICENSE)
-
----
-
-## 📝 Changelog
-
-### Unreleased
-- ✨ Add Gemini CLI support
-- 🎯 Support for Gemini 3/2.5/2.0/1.5 series models
-- 🔐 Google OAuth authentication for Gemini CLI
-
-### 0.0.1 (2025-01-23)
-- ✨ Initial release
-- 🎯 Support for OpenAI, Zhipu AI, Z.ai, Google Antigravity
-- 👥 Multi-account support
-- 🏷️ Account aliases
-- 🔄 Auto-refresh functionality
-- 🌍 Internationalization (English/Chinese)
-
----

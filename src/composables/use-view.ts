@@ -12,12 +12,11 @@ import { useAccounts } from './use-accounts'
 import { useConfig } from './use-config'
 import {
   loginWithGoogle,
-  loginWithOpenAI,
-  loginWithOpenAIToken,
   loginWithApiKey,
   loginWithGitHub,
   loginWithGeminiCli
-} from '../utils/auth-helpers'
+} from '../utils/key-helpers'
+import { checkClaudeCodeInstalled } from '../utils/local-helpers'
 
 export function useView() {
   const { 
@@ -540,15 +539,13 @@ export function useView() {
       credential = await loginWithGitHub()
     } else if (providerId === 'gemini-cli') {
       credential = await loginWithGeminiCli()
-    } else if (providerId === 'openai') {
-      const method = await selectOpenAIMethod()
-      if (!method) return
-
-      if (method === 'oauth') {
-        credential = await loginWithOpenAI()
-      } else {
-        credential = await loginWithOpenAIToken()
+    } else if (providerId === 'claude-code') {
+      const isInstalled = await checkClaudeCodeInstalled()
+      if (!isInstalled) {
+        window.showErrorMessage('Claude Code not installed. Run `npm install -g @anthropic-ai/claude-code`')
+        return
       }
+      credential = 'local'
     } else {
       credential = await loginWithApiKey(providerId as 'zhipu' | 'zai')
     }
@@ -630,15 +627,13 @@ export function useView() {
       credential = await loginWithGoogle()
     } else if (account.providerId === 'gemini-cli') {
       credential = await loginWithGeminiCli()
-    } else if (account.providerId === 'openai') {
-      const method = await selectOpenAIMethod()
-      if (!method) return
-
-      if (method === 'oauth') {
-        credential = await loginWithOpenAI()
-      } else {
-        credential = await loginWithOpenAIToken()
+    } else if (account.providerId === 'claude-code') {
+      const isInstalled = await checkClaudeCodeInstalled()
+      if (!isInstalled) {
+        window.showErrorMessage('Claude Code not installed. Run `npm install -g @anthropic-ai/claude-code`')
+        return
       }
+      credential = 'local'
     } else {
       credential = await loginWithApiKey(account.providerId as 'zhipu' | 'zai')
     }
@@ -672,28 +667,6 @@ export function useView() {
     )
 
     await showAccountMenu()
-  }
-
-  async function selectOpenAIMethod(): Promise<'oauth' | 'token' | null> {
-    const items = [
-      {
-        label: 'OAuth Login (Recommended)',
-        description: 'For ChatGPT Plus/Pro',
-        detail: 'oauth'
-      },
-      {
-        label: 'Access Token',
-        description: 'Manually enter JWT Token',
-        detail: 'token'
-      }
-    ]
-
-    const selected = await window.showQuickPick(items, {
-      placeHolder: 'Select Login Method'
-    })
-
-    if (!selected) return null
-    return selected.detail as 'oauth' | 'token'
   }
 
   async function inputAlias(): Promise<string | undefined> {

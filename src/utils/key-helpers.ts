@@ -1,11 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { env, window, Uri, authentication } from 'vscode'
 import {
-  generateRandomString,
-  generatePkce,
   waitForOAuthCallback,
-  exchangeGoogleCode,
-  exchangeOpenAICode
+  exchangeGoogleCode
 } from './oauth-helpers'
 
 const GOOGLE_OAUTH = {
@@ -20,14 +17,6 @@ const GOOGLE_OAUTH = {
     'https://www.googleapis.com/auth/cclog',
     'https://www.googleapis.com/auth/experimentsandconfigs'
   ]
-} as const
-
-const OPENAI_OAUTH = {
-  issuer: 'https://auth.openai.com',
-  clientId: 'app_EMoamEEZ73f0CkXaXp7hrann',
-  callbackPort: 1455,
-  redirectPath: '/auth/callback',
-  scope: 'openid profile email offline_access'
 } as const
 
 export async function loginWithGoogle(): Promise<string> {
@@ -64,68 +53,6 @@ export async function loginWithGoogle(): Promise<string> {
   }
 
   return tokens.refresh_token
-}
-
-export async function loginWithOpenAI(): Promise<string> {
-  const { verifier, challenge } = generatePkce()
-  const state = generateRandomString(32)
-
-  const url = new URL(`${OPENAI_OAUTH.issuer}/oauth/authorize`)
-  url.searchParams.set('response_type', 'code')
-  url.searchParams.set('client_id', OPENAI_OAUTH.clientId)
-  url.searchParams.set('redirect_uri', `http://localhost:${OPENAI_OAUTH.callbackPort}${OPENAI_OAUTH.redirectPath}`)
-  url.searchParams.set('scope', OPENAI_OAUTH.scope)
-  url.searchParams.set('code_challenge', challenge)
-  url.searchParams.set('code_challenge_method', 'S256')
-  url.searchParams.set('id_token_add_organizations', 'true')
-  url.searchParams.set('codex_cli_simplified_flow', 'true')
-  url.searchParams.set('state', state)
-  url.searchParams.set('originator', 'opencode')
-
-  await env.openExternal(Uri.parse(url.toString()))
-
-  const result = await window.withProgress(
-    {
-      location: { viewId: 'unifyQuotaMonitor.usageView' },
-      title: 'Waiting for OpenAI authorization...',
-      cancellable: true
-    },
-    async () => {
-      return waitForOAuthCallback(OPENAI_OAUTH.callbackPort, OPENAI_OAUTH.redirectPath, state)
-    }
-  )
-
-  if (!result) {
-    throw new Error('Authentication failed')
-  }
-
-  const tokens = await exchangeOpenAICode(result, verifier)
-  if (!tokens.access_token) {
-    throw new Error('No access token returned')
-  }
-
-  const credentialData = {
-    accessToken: tokens.access_token,
-    refreshToken: tokens.refresh_token,
-    expiresIn: tokens.expires_in,
-    tokenType: tokens.token_type
-  }
-  return JSON.stringify(credentialData)
-}
-
-export async function loginWithOpenAIToken(): Promise<string> {
-  const credential = await window.showInputBox({
-    title: 'Enter OpenAI Access Token',
-    prompt: 'Manually enter JWT Token',
-    password: true,
-    ignoreFocusOut: true
-  })
-
-  if (!credential) {
-    throw new Error('Canceled')
-  }
-
-  return credential
 }
 
 export async function loginWithApiKey(
@@ -200,58 +127,6 @@ export async function refreshGoogleToken(refreshToken: string): Promise<string> 
   // eslint-disable-next-line @typescript-eslint/naming-convention
   const tokenData = (await response.json()) as { access_token: string }
   return tokenData.access_token
-}
-
-export async function refreshOpenAIToken(
-  credentialJson: string
-): Promise<{ newCredential: string; accessToken: string } | null> {
-  let refreshToken = ''
-
-  try {
-    const json = JSON.parse(credentialJson) as { refreshToken?: string }
-    if (json.refreshToken) {
-      refreshToken = json.refreshToken
-    }
-  } catch {
-    return null
-  }
-
-  if (!refreshToken) {
-    return null
-  }
-
-  try {
-    const params = new URLSearchParams()
-    params.set('grant_type', 'refresh_token')
-    params.set('refresh_token', refreshToken)
-    params.set('client_id', 'app_EMoamEEZ73f0CkXaXp7hrann')
-
-    const response = await fetch('https://auth.openai.com/oauth/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: params.toString()
-    })
-
-    if (!response.ok) {
-      return null
-    }
-
-    const newData = (await response.json()) as any
-
-    const newCredential = JSON.stringify({
-      accessToken: newData.access_token,
-      refreshToken: newData.refresh_token || refreshToken,
-      expiresIn: newData.expires_in,
-      tokenType: newData.token_type
-    })
-
-    return {
-      newCredential,
-      accessToken: newData.access_token
-    }
-  } catch {
-    return null
-  }
 }
 
 export async function loginWithGitHub(): Promise<string> {

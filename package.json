@@ -2,7 +2,7 @@
   "publisher": "mossgowild",
   "name": "unify-quota-monitor",
   "displayName": "Unify Quota Monitor",
-  "description": "Monitor provider usage quotas in a beautiful panel view. Supports OpenAI, Google Antigravity, GitHub Copilot, Gemini CLI, Zhipu AI, and Z.ai.",
+  "description": "Monitor provider usage quotas in a beautiful panel view. Supports Google Antigravity, GitHub Copilot, Gemini CLI, Claude Code, Zhipu AI, and Z.ai.",
   "type": "module",
   "version": "0.0.1",
   "private": true,
@@ -38,22 +38,22 @@
             "properties": {
               "provider": {
                 "type": "string",
-                "markdownDescription": "Provider type: `openai` (OpenAI), `google-antigravity` (Google Antigravity), `github-copilot` (GitHub Copilot), `gemini-cli` (Gemini CLI), `zhipu` (Zhipu AI), `zai` (Z.ai)",
+                "markdownDescription": "Provider type: `google-antigravity` (Google Antigravity), `github-copilot` (GitHub Copilot), `gemini-cli` (Gemini CLI), `claude-code` (Claude Code), `zhipu` (Zhipu AI), `zai` (Z.ai)",
                 "enum": [
-                  "openai",
                   "google-antigravity",
                   "github-copilot",
                   "gemini-cli",
                   "zhipu",
-                  "zai"
+                  "zai",
+                  "claude-code"
                 ],
                 "enumDescriptions": [
-                  "OpenAI",
                   "Google Antigravity",
                   "GitHub Copilot",
                   "Gemini CLI",
                   "Zhipu AI (智谱 AI)",
-                  "Z.ai"
+                  "Z.ai",
+                  "Claude Code"
                 ]
               },
               "name": {

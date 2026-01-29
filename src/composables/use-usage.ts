@@ -6,10 +6,10 @@ import { useAccounts } from './use-accounts'
 import { useConfig, DEFAULT_AUTO_REFRESH } from './use-config'
 import {
   refreshGoogleToken,
-  refreshOpenAIToken,
   getGitHubAccessToken,
   refreshGeminiCliToken
-} from '../utils/auth-helpers'
+} from '../utils/key-helpers'
+import { getClaudeCodeUsage } from '../utils/local-helpers'
 
 export const useUsage = defineService(() => {
   const { getAccountsByProvider, updateCredential } = useAccounts()
@@ -36,23 +36,6 @@ export const useUsage = defineService(() => {
       } catch {
         return null
       }
-    }
-
-    if (account.providerId === 'openai') {
-      try {
-        const json = JSON.parse(account.credential)
-        if (json.accessToken) {
-          return json.accessToken
-        }
-      } catch {
-        return null
-      }
-
-      const result = await refreshOpenAIToken(account.credential)
-      if (result) {
-        return result.accessToken
-      }
-      return null
     }
 
     return account.credential
@@ -125,87 +108,6 @@ export const useUsage = defineService(() => {
       }
     } catch (e: any) {
       return createErrorAccount(account, `Error: ${e.message || e}`)
-    }
-  }
-
-  async function fetchOpenAIUsage(
-    account: Pick<Account, 'id' | 'alias' | 'credential'> & { providerId?: ProviderId }
-  ): Promise<Account | null> {
-    const token = await getAccessToken(account)
-    if (!token) return createErrorAccount(account)
-
-    let response = await fetch('https://chatgpt.com/backend-api/wham/usage', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'User-Agent': 'UnifyQuotaMonitor/1.0'
-      }
-    })
-
-    if (response.status === 401) {
-      const result = await refreshOpenAIToken(account.credential)
-      if (result?.accessToken) {
-        response = await fetch('https://chatgpt.com/backend-api/wham/usage', {
-          headers: {
-            Authorization: `Bearer ${result.accessToken}`,
-            'User-Agent': 'UnifyQuotaMonitor/1.0'
-          }
-        })
-      }
-    }
-
-    if (!response.ok) return createErrorAccount(account)
-
-    const data = (await response.json()) as any
-    const models: UsageCategory[] = []
-
-    if (data.rate_limit) {
-      const formatWindowName = (seconds: number) => {
-        const hours = Math.round(seconds / 3600)
-        return `${hours}h Limit`
-      }
-
-      if (data.rate_limit.primary_window) {
-        const w = data.rate_limit.primary_window
-        models.push({
-          name: formatWindowName(w.limit_window_seconds),
-          limitType: 'request',
-          used: w.used_percent,
-          total: 100,
-          percentageOnly: true,
-          resetTime: new Date(
-            Date.now() + w.reset_after_seconds * 1000
-          ).toISOString()
-        })
-      }
-
-      if (data.rate_limit.secondary_window) {
-        const w = data.rate_limit.secondary_window
-        models.push({
-          name: formatWindowName(w.limit_window_seconds),
-          limitType: 'request',
-          used: w.used_percent,
-          total: 100,
-          percentageOnly: true,
-          resetTime: new Date(
-            Date.now() + w.reset_after_seconds * 1000
-          ).toISOString()
-        })
-      }
-    }
-
-    // Sort by usage percentage (ascending - more remaining first)
-    models.sort((a, b) => {
-      const pA = a.total > 0 ? (a.used / a.total) : 0
-      const pB = b.total > 0 ? (b.used / b.total) : 0
-      return pA - pB
-    })
-
-    return {
-      id: account.id,
-      alias: account.alias,
-      credential: account.credential,
-      usage: models,
-      lastUpdated: new Date().toISOString()
     }
   }
 
@@ -326,6 +228,44 @@ export const useUsage = defineService(() => {
       const pB = b.total > 0 ? (b.used / b.total) : 0
       return pA - pB
     })
+
+    return {
+      id: account.id,
+      alias: account.alias,
+      credential: account.credential,
+      usage: models,
+      lastUpdated: new Date().toISOString()
+    }
+  }
+
+  async function fetchClaudeCodeUsage(
+    account: Pick<Account, 'id' | 'alias' | 'credential'>
+  ): Promise<Account | null> {
+    const result = await getClaudeCodeUsage()
+
+    if (!result.isInstalled) {
+      return createErrorAccount(account, result.error || 'Claude Code not installed')
+    }
+
+    const models: UsageCategory[] = [{
+      name: '5-Hour Window',
+      limitType: 'credit',
+      used: Math.round(result.costUSD * 100) / 100,
+      total: 5.0,
+      percentageOnly: false,
+      resetTime: result.resetTime?.toISOString()
+    }]
+
+    // If no usage data yet, show info but not as error
+    if (!result.hasUsageData) {
+      return {
+        id: account.id,
+        alias: account.alias,
+        credential: account.credential,
+        usage: models,
+        lastUpdated: new Date().toISOString()
+      }
+    }
 
     return {
       id: account.id,
@@ -542,14 +482,14 @@ export const useUsage = defineService(() => {
     const newAccounts: Account[] = []
 
     const promises = storedAccounts.map(async (account) => {
-      if (providerId === 'openai') {
-        return fetchOpenAIUsage(account)
-      } else if (providerId === 'google-antigravity') {
+      if (providerId === 'google-antigravity') {
         return fetchGoogleUsage(account)
       } else if (providerId === 'github-copilot') {
         return fetchGitHubUsage(account)
       } else if (providerId === 'gemini-cli') {
         return fetchGeminiCliUsage(account)
+      } else if (providerId === 'claude-code') {
+        return fetchClaudeCodeUsage(account)
       } else {
         return fetchZhipuUsage(providerId as any, account)
       }

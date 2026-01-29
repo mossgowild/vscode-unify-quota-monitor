@@ -83,28 +83,3 @@ export async function exchangeGoogleCode(code: string): Promise<any> {
 
   return response.json()
 }
-
-export async function exchangeOpenAICode(
-  code: string,
-  verifier: string
-): Promise<any> {
-  const params = new URLSearchParams()
-  params.set('grant_type', 'authorization_code')
-  params.set('code', code)
-  params.set('redirect_uri', 'http://localhost:1455/auth/callback')
-  params.set('client_id', 'app_EMoamEEZ73f0CkXaXp7hrann')
-  params.set('code_verifier', verifier)
-
-  const response = await fetch('https://auth.openai.com/oauth/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: params.toString()
-  })
-
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`OpenAI Token Exchange Failed: ${error}`)
-  }
-
-  return response.json()
-}

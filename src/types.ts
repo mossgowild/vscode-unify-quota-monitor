@@ -1,4 +1,4 @@
-export type ProviderId = 'openai' | 'zhipu' | 'zai' | 'google-antigravity' | 'github-copilot' | 'gemini-cli'
+export type ProviderId = 'zhipu' | 'zai' | 'google-antigravity' | 'github-copilot' | 'gemini-cli' | 'claude-code'
 
 export interface UsageCategory {
   name: string
@@ -11,7 +11,7 @@ export interface UsageCategory {
 
 export interface ProviderAuth {
   required: boolean
-  type: 'token' | 'oauth' | 'key'
+  type: 'oauth' | 'key' | 'local'
   placeholder?: string
 }
 

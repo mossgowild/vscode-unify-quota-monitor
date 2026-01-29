@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-`unify-quota-monitor` 是一个 VS Code 扩展，使用 `reactive-vscode` 框架在侧边栏 Panel 中实时显示多个 Provider（OpenAI, Google Antigravity, GitHub Copilot, Gemini CLI, 智谱 AI/Zhipu AI, Z.ai）的真实用量配额。
+`unify-quota-monitor` 是一个 VS Code 扩展，使用 `reactive-vscode` 框架在侧边栏 Panel 中实时显示多个 Provider（Google Antigravity, GitHub Copilot, Gemini CLI, Claude Code, 智谱 AI/Zhipu AI, Z.ai）的真实用量配额。
 
 ## 快速开始
 
@@ -36,7 +36,7 @@ src/
 │   ├── use-usage.ts      # Controller 层 - defineService，数据获取与自动刷新
 │   └── use-view.ts       # View 层 - useWebviewView，HTML 生成与 UI 交互
 └── utils/
-    ├── auth-helpers.ts   # 认证流程（Google/OpenAI OAuth, GitHub Auth, Token 刷新）
+    ├── key-helpers.ts    # API Key 和 OAuth 认证流程（Google OAuth, GitHub Auth, Gemini CLI）
     └── oauth-helpers.ts  # OAuth 协议底层实现（PKCE, HTTP Server 回调）
 ```
 
@@ -79,12 +79,12 @@ View (useView) → Model (config) → Controller (useUsage) → View (useView)
 
 | ID | 名称 | 认证方式 | 存储内容 |
 |---|---|---|---|
-| `openai` | OpenAI | OAuth / Token | refresh_token (OAuth) 或 accessToken (JWT) |
 | `google-antigravity` | Google Antigravity | OAuth | refresh_token (端口 51121) |
 | `gemini-cli` | Gemini CLI | OAuth | accessToken + refresh_token (端口 51121) |
 | `zhipu` | Zhipu AI | API Key | API Key |
 | `zai` | Z.ai | API Key | API Key |
 | `github-copilot` | GitHub Copilot | OAuth | VS Code authentication.getSession() |
+| `claude-code` | Claude Code | Local Log | 读取本地日志文件计算 5 小时窗口用量 |
 
 ### 核心特性
 
@@ -100,11 +100,11 @@ View (useView) → Model (config) → Controller (useUsage) → View (useView)
 
 | Provider | 用量类型 | 说明 |
 |---|---|---|
-| OpenAI | Token / Request | 双窗口配额（primary/secondary window） |
 | Google Antigravity | Percentage | 按模型显示剩余百分比 |
 | **Gemini CLI** | **Percentage** | API 返回 `remainingFraction` (0.0-1.0)，显示为已使用百分比 |
 | Zhipu AI / Z.ai | Token / Request | Token 限额 + MCP 配额 |
 | GitHub Copilot | Request | Premium Request 限额 |
+| Claude Code | Cost / Time | 5小时窗口费用估算 |
 
 **Gemini CLI 特殊处理**:
 - API 返回 `buckets[]` 数组，每个 bucket 包含 `modelId`, `remainingFraction`, `resetTime`

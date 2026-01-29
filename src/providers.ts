@@ -3,15 +3,6 @@ import type { ProviderDefinition, ProviderId } from './types'
 function getProviderDefinitions(): ProviderDefinition[] {
   return [
     {
-      id: 'openai',
-      name: 'OpenAI',
-      auth: {
-        required: true,
-        type: 'token',
-        placeholder: 'Enter OpenAI Access Token (JWT)',
-      },
-    },
-    {
       id: 'zhipu',
       name: 'Zhipu AI',
       auth: {
@@ -54,6 +45,15 @@ function getProviderDefinitions(): ProviderDefinition[] {
         required: true,
         type: 'oauth',
         placeholder: 'Login with Gemini CLI OAuth',
+      },
+    },
+    {
+      id: 'claude-code',
+      name: 'Claude Code',
+      auth: {
+        required: false,
+        type: 'local',
+        placeholder: 'Read from local logs',
       },
     },
   ]
