@@ -43,6 +43,7 @@ That's it! You can now monitor your quota usage in real-time.
 
 ### 📊 Real-time Monitoring
 - Display quota usage for all providers in the sidebar
+- **Smart Sorting**: Highest remaining quota (lowest usage %) shown first
 - Clear progress bars and percentage displays
 - Automatic reset countdowns (e.g., "4h25m" until reset)
 
@@ -51,6 +52,7 @@ That's it! You can now monitor your quota usage in real-time.
 - Set account aliases (e.g., "Work", "Personal")
 - Single account: no label shown
 - Multiple accounts: clear display with aliases or IDs
+- **Provider Ordering**: Providers in the panel follow the order defined in settings
 
 ### 🔄 Auto Refresh
 - Auto-refresh every 60 seconds by default

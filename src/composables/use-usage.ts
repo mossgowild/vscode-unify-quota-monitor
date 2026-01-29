@@ -194,6 +194,13 @@ export const useUsage = defineService(() => {
       }
     }
 
+    // Sort by usage percentage (ascending - more remaining first)
+    models.sort((a, b) => {
+      const pA = a.total > 0 ? (a.used / a.total) : 0
+      const pB = b.total > 0 ? (b.used / b.total) : 0
+      return pA - pB
+    })
+
     return {
       id: account.id,
       alias: account.alias,
@@ -249,11 +256,14 @@ export const useUsage = defineService(() => {
         })
       }
 
-      // Sort: Token Limit first
+      // Sort: Token Limit first, then by usage percentage (ascending)
       models.sort((a, b) => {
         if (a.limitType === 'token' && b.limitType !== 'token') return -1
         if (a.limitType !== 'token' && b.limitType === 'token') return 1
-        return 0
+        
+        const pA = a.total > 0 ? (a.used / a.total) : 0
+        const pB = b.total > 0 ? (b.used / b.total) : 0
+        return pA - pB
       })
     }
 
@@ -310,6 +320,13 @@ export const useUsage = defineService(() => {
         })
       }
     }
+
+    // Sort by usage percentage (ascending - more remaining first)
+    models.sort((a, b) => {
+      const pA = a.total > 0 ? (a.used / a.total) : 0
+      const pB = b.total > 0 ? (b.used / b.total) : 0
+      return pA - pB
+    })
 
     return {
       id: account.id,
@@ -487,6 +504,13 @@ export const useUsage = defineService(() => {
         resetTime: bucket.resetTime
       })
     }
+    
+    // Sort by usage percentage (ascending - more remaining first)
+    models.sort((a, b) => {
+      const pA = a.total > 0 ? (a.used / a.total) : 0
+      const pB = b.total > 0 ? (b.used / b.total) : 0
+      return pA - pB
+    })
 
     return {
       id: account.id,

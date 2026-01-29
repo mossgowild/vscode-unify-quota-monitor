@@ -56,8 +56,9 @@ UI 样式参考 GitHub Copilot Status Bar 的设计规范，确保视觉一致�
 
 ### 排序规则
 
-- Z.ai/Zhipu: Token Limit 类型的配额始终排在 Request Limit 之前
-- Google Provider: "Claude Opus 4.5" 优先显示
+- **Provider 排序**: 面板中的 Provider 显示顺序严格遵循 `unifyQuotaMonitor.providers` 配置中的顺序。
+- **配额排序**: 按照使用百分比 (Used / Total) **升序**排列，即剩余配额越多越靠前。
+- Z.ai/Zhipu: Token Limit 类型的配额始终排在 Request Limit 之前，组内再按使用百分比升序排列。
 - Request 类型的配额：不显示单位后缀 ("requests")
 
 ## UI 交互

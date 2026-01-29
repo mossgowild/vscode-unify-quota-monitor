@@ -33,7 +33,7 @@ src/
 ├── i18n.ts               # 国际化工具（封装 vscode.l10n）
 ├── composables/
 │   ├── use-config.ts     # Model 层基础 - defineConfig 定义配置接口
-│   ├── use-accounts.ts   # Model 层辅助 - 账号 CRUD 封装（computed, ConfigurationTarget, Migration）
+│   ├── use-accounts.ts   # Model 层辅助 - 账号 CRUD 封装（computed, ConfigurationTarget）
 │   ├── use-usage.ts      # Controller 层 - defineService，数据获取与自动刷新
 │   └── use-view.ts       # View 层 - useWebviewView，HTML 生成与 UI 交互
 └── utils/
@@ -72,7 +72,7 @@ View (useView) → Model (config) → Controller (useUsage) → View (useView)
 |---|---|---|---|---|
 | View | `useView` | useWebviewView | `useUsage`, `config`, `utils` | HTML 模板生成、QuickPick 菜单、写入配置 |
 | Controller | `useUsage` | defineService | `useAccounts`, `utils` | API 请求、watchEffect 自动刷新 |
-| Model | `useAccounts` | - | `useConfig` | computed 账号列表、CRUD 封装、旧配置迁移 |
+| Model | `useAccounts` | - | `useConfig` | computed 账号列表、CRUD 封装 |
 | Model | `useConfig` | defineConfig | 无 | 配置接口定义（providers, autoRefresh） |
 | Utils | `utils/` | - | 无 | OAuth 流程、PKCE、HTTP Server |
 
@@ -90,6 +90,9 @@ View (useView) → Model (config) → Controller (useUsage) → View (useView)
 ### 核心特性
 
 - **自动响应式**: `config` 变化触发 `watchEffect` 重新计算，自动刷新数据
+- **智能排序**:
+  - **Provider 排序**: 面板中的 Provider 显示顺序严格遵循 `unifyQuotaMonitor.providers` 配置中的顺序
+  - **配额排序**: 按照使用百分比 (Used / Total) 升序排列，即剩余配额越多越靠前
 - **防抖优化**: `useUsage` 实现防抖，避免频繁配置变化导致过多 API 请求
 - **无状态工具函数**: 认证逻辑由无状态函数处理（`loginWithGoogle`, `loginWithOpenAI`, `loginWithGeminiCli`, `loginWithGitHub`）
 - **服务单例**: `defineService` 确保 `useUsage` 全局唯一实例

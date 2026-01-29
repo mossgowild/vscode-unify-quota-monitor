@@ -29,9 +29,31 @@ export function useView() {
     updateCredential 
   } = useAccounts()
   const { providers, hasLoadedOnce } = useUsage()
+  const config = useConfig()
 
   const html = computed(() => {
-    const providerList = providers.value
+    const providerList = [...providers.value]
+    const configProviders = config.providers || []
+    
+    // Create index map
+    const providerOrder = new Map<string, number>()
+    configProviders.forEach((p, index) => {
+      // Use set to ensure first occurrence determines order if duplicates exist
+      if (!providerOrder.has(p.provider)) {
+        providerOrder.set(p.provider, index)
+      }
+    })
+    
+    providerList.sort((a, b) => {
+      const orderA = providerOrder.has(a.id) ? providerOrder.get(a.id)! : 9999
+      const orderB = providerOrder.has(b.id) ? providerOrder.get(b.id)! : 9999
+      
+      if (orderA !== orderB) {
+        return orderA - orderB
+      }
+      return 0 
+    })
+
     const hasAccounts = providerList.some(
       (p) => p.accounts && p.accounts.length > 0
     )
@@ -446,7 +468,9 @@ export function useView() {
     if (accounts.length > 0) {
       for (const account of accounts) {
         const providerDef = getProviderDefinition(account.providerId)
-        const accountLabel = account.alias || account.id
+        const hasMultipleSameProvider = accounts.filter(a => a.providerId === account.providerId).length > 1
+        const accountLabel = account.alias || (hasMultipleSameProvider ? account.id : '')
+        
         items.push({
           label: providerDef?.name || account.providerId,
           description: accountLabel,
@@ -460,14 +484,14 @@ export function useView() {
     }
 
     items.push({
-      label: `$(plus) ${t('Add Provider')}`,
-      description: t('Login to new AI Provider'),
+      label: `$(plus) ${t('Add provider')}`,
+      description: t('Login to new provider'),
       action: 'addProvider'
     } as any)
 
     const selected = await window.showQuickPick(items as QuickPickItem[], {
       title: t('Settings'),
-      placeHolder: t('Manage accounts or add new Provider')
+      placeHolder: t('Manage accounts or add new provider')
     })
 
     if (!selected) return
@@ -483,7 +507,9 @@ export function useView() {
   }
 
   async function addProviderAccount() {
-    const providers = getAllProviderDefinitions()
+    const providers = getAllProviderDefinitions().sort((a, b) =>
+      a.name.localeCompare(b.name)
+    )
     const items = providers.map(
       (p) =>
         ({
@@ -500,7 +526,7 @@ export function useView() {
 
     const selected = await window.showQuickPick(items as QuickPickItem[], {
       title: t('Select Provider'),
-      placeHolder: t('Select AI Provider to add')
+      placeHolder: t('Select provider to add')
     })
 
     if (!selected) return
