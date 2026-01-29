@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { env, window, Uri, authentication } from 'vscode'
-import { t } from '../i18n'
 import {
   generateRandomString,
   generatePkce,
@@ -47,7 +46,7 @@ export async function loginWithGoogle(): Promise<string> {
   const result = await window.withProgress(
     {
       location: { viewId: 'unifyQuotaMonitor.usageView' },
-      title: t('Waiting for Google authorization...'),
+      title: 'Waiting for Google authorization...',
       cancellable: true
     },
     async () => {
@@ -56,12 +55,12 @@ export async function loginWithGoogle(): Promise<string> {
   )
 
   if (!result) {
-    throw new Error(t('Authentication failed'))
+    throw new Error('Authentication failed')
   }
 
   const tokens = await exchangeGoogleCode(result)
   if (!tokens.refresh_token) {
-    throw new Error(t('No refresh token returned'))
+    throw new Error('No refresh token returned')
   }
 
   return tokens.refresh_token
@@ -88,7 +87,7 @@ export async function loginWithOpenAI(): Promise<string> {
   const result = await window.withProgress(
     {
       location: { viewId: 'unifyQuotaMonitor.usageView' },
-      title: t('Waiting for OpenAI authorization...'),
+      title: 'Waiting for OpenAI authorization...',
       cancellable: true
     },
     async () => {
@@ -97,12 +96,12 @@ export async function loginWithOpenAI(): Promise<string> {
   )
 
   if (!result) {
-    throw new Error(t('Authentication failed'))
+    throw new Error('Authentication failed')
   }
 
   const tokens = await exchangeOpenAICode(result, verifier)
   if (!tokens.access_token) {
-    throw new Error(t('No access token returned'))
+    throw new Error('No access token returned')
   }
 
   const credentialData = {
@@ -116,8 +115,8 @@ export async function loginWithOpenAI(): Promise<string> {
 
 export async function loginWithOpenAIToken(): Promise<string> {
   const credential = await window.showInputBox({
-    title: t('Enter OpenAI Access Token'),
-    prompt: t('Manually enter JWT Token'),
+    title: 'Enter OpenAI Access Token',
+    prompt: 'Manually enter JWT Token',
     password: true,
     ignoreFocusOut: true
   })
@@ -134,7 +133,7 @@ export async function loginWithApiKey(
 ): Promise<string> {
   const config: Record<string, any> = {
     zhipu: {
-      providerName: t('Zhipu AI'),
+      providerName: 'Zhipu AI',
       helpUrl: 'https://open.bigmodel.cn/usercenter/apikeys',
       prefix: 'sk.',
       buttonTextKey: 'Open docs to get Key'
@@ -151,7 +150,7 @@ export async function loginWithApiKey(
 
   const openDocsAction = await window.showInformationMessage(
     `${providerConfig.providerName} API Key`,
-    t(providerConfig.buttonTextKey)
+    providerConfig.buttonTextKey
   )
 
   if (openDocsAction) {
@@ -159,22 +158,16 @@ export async function loginWithApiKey(
   }
 
   const apiKey = await window.showInputBox({
-    title: t('Enter {providerName} API Key', {
-      providerName: providerConfig.providerName
-    }),
-    prompt: t('Format: {prefix}xxxxxxxxx (starts with {prefix})', {
-      prefix: providerConfig.prefix
-    }),
+    title: `Enter ${providerConfig.providerName} API Key`,
+    prompt: `Format: ${providerConfig.prefix}xxxxxxxxx (starts with ${providerConfig.prefix})`,
     password: true,
     ignoreFocusOut: true,
     validateInput: (value: string) => {
       if (!value?.trim()) {
-        return t('API Key cannot be empty')
+        return 'API Key cannot be empty'
       }
       if (!value.startsWith(providerConfig.prefix)) {
-        return t('Invalid API Key format, should start with {prefix}', {
-          prefix: providerConfig.prefix
-        })
+        return `Invalid API Key format, should start with ${providerConfig.prefix}`
       }
       return null
     }
@@ -321,7 +314,7 @@ export async function loginWithGeminiCli(): Promise<string> {
   const result = await window.withProgress(
     {
       location: { viewId: 'unifyQuotaMonitor.usageView' },
-      title: t('Waiting for Gemini CLI authorization...'),
+      title: 'Waiting for Gemini CLI authorization...',
       cancellable: true
     },
     async () => {
@@ -330,7 +323,7 @@ export async function loginWithGeminiCli(): Promise<string> {
   )
 
   if (!result) {
-    throw new Error(t('Authentication failed'))
+    throw new Error('Authentication failed')
   }
 
   // Exchange code for tokens
@@ -354,7 +347,7 @@ export async function loginWithGeminiCli(): Promise<string> {
 
   const tokens = await response.json() as { refresh_token?: string; access_token: string; expires_in: number; token_type: string }
   if (!tokens.refresh_token) {
-    throw new Error(t('No refresh token returned'))
+    throw new Error('No refresh token returned')
   }
 
   const credentialData = {

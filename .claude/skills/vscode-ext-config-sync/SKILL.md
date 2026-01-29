@@ -2,7 +2,7 @@
 
 ## 描述
 
-当修改 VS Code 扩展的配置相关内容时，确保所有关联文件保持同步。本 Skill 适用于任何涉及 `package.json`、`package.nls.*.json`、TypeScript 类型和实现文件的变更。
+当修改 VS Code 扩展的配置相关内容时，确保所有关联文件保持同步。本 Skill 适用于任何涉及 `package.json`、TypeScript 类型和实现文件的变更。
 
 ## 触发条件
 
@@ -17,8 +17,6 @@
 
 ```
 package.json (源头)
-  ├── package.nls.json (英文本地化)
-  ├── package.nls.zh-cn.json (中文本地化)
   └── src/
       ├── types.ts (TypeScript 类型)
       ├── providers.ts (Provider 定义)
@@ -44,8 +42,6 @@ AGENTS.md (文档同步)
 |------|------|------|
 | `package.json` | `contributes.configuration.properties[].items.properties.providerId.enum` | 枚举值列表 |
 | `package.json` | `contributes.configuration.properties[].items.properties.providerId.enumDescriptions` | 枚举描述 |
-| `package.nls.json` | `configuration.accounts.providerId.markdownDescription` | Provider 列表说明 |
-| `package.nls.zh-cn.json` | 同上 | 中文版本 |
 | `src/types.ts` | `ProviderId` 类型定义 | `type ProviderId = '...'` |
 | `src/providers.ts` | `getProviderDefinitions()` 中的 `id` 字段 | Provider 对象定义 |
 | `src/composables/use-usage.ts` | 所有 `providerId === 'xxx'` 比较 | 第 26、478 行附近 |
@@ -68,8 +64,6 @@ npm run typecheck
 |------|------|
 | `package.json` | `contributes.commands` 数组 |
 | `package.json` | `contributes.menus` 中的引用 |
-| `package.nls.json` | `command.{commandId}.title` |
-| `package.nls.zh-cn.json` | 中文版本 |
 | `src/extension.ts` | `useCommand` 注册 |
 
 ### 3. 视图变更
@@ -82,8 +76,6 @@ npm run typecheck
 |------|------|
 | `package.json` | `contributes.viewsContainers` |
 | `package.json` | `contributes.views` |
-| `package.nls.json` | `viewsContainers.*.title` 和 `views.*.name` |
-| `package.nls.zh-cn.json` | 中文版本 |
 | `src/composables/use-view.ts` | `useWebviewView` 注册 |
 
 ### 4. 配置项变更
@@ -95,8 +87,6 @@ npm run typecheck
 | 文件 | 位置 |
 |------|------|
 | `package.json` | `contributes.configuration.properties` |
-| `package.nls.json` | `configuration.{property}.markdownDescription` |
-| `package.nls.zh-cn.json` | 中文版本 |
 | `src/composables/use-config.ts` | `defineConfig` 定义 |
 | `src/types.ts` | 相关类型定义 |
 
@@ -106,13 +96,11 @@ npm run typecheck
 
 **第 1 步：搜索所有引用**
 ```bash
-grep -rn "antigravity" src/ package.json package.nls*.json
+grep -rn "antigravity" src/ package.json
 ```
 
 **第 2 步：逐一更新**
 - [ ] `package.json` 中的 enum 更新（两处：enum 和 enumDescriptions）
-- [ ] `package.nls.json` 中 providerId 描述更新
-- [ ] `package.nls.zh-cn.json` 中 providerId 描述更新
 - [ ] `src/types.ts` 中 ProviderId 类型更新
 - [ ] `src/providers.ts` 中 Provider 定义更新
 - [ ] `src/composables/use-usage.ts` 中所有比较逻辑更新（搜索 `providerId === 'xxx'`）
@@ -127,16 +115,12 @@ grep -rn "antigravity" src/ package.json package.nls*.json
 
 - [ ] `package.json` commands 数组更新
 - [ ] `package.json` menus 引用更新
-- [ ] `package.nls.json` 命令标题更新
-- [ ] `package.nls.zh-cn.json` 命令标题更新
 - [ ] `src/extension.ts` 命令注册更新
 
 ### 视图变更检查清单
 
 - [ ] `package.json` viewsContainers 更新
 - [ ] `package.json` views 更新
-- [ ] `package.nls.json` 视图标题更新
-- [ ] `package.nls.zh-cn.json` 视图标题更新
 - [ ] `src/composables/use-view.ts` 视图注册更新
 
 ## 常见陷阱（按发生频率排序）
@@ -145,7 +129,7 @@ grep -rn "antigravity" src/ package.json package.nls*.json
    - 该文件有两处需要修改：`providerId === 'xxx'` 和 `account.providerId === 'xxx'`
    - 分别在 `addAccount()` 和 `reloginAccount()` 函数中
 
-2. **遗漏枚举同步** 
+2. **遗漏枚举同步**
    - `package.json` 中的 `enum` 和 `enumDescriptions` 必须成对更新
    - 顺序不一致会导致显示错位
 
@@ -157,16 +141,12 @@ grep -rn "antigravity" src/ package.json package.nls*.json
    - `auth-helpers.ts` 中的 `'github'` 是 VS Code API 作用域，不是 providerId，**不应修改**
    - User-Agent 字符串中的标识（如 `antigravity/1.11.9`）是 API 要求的，**不应修改**
 
-5. **本地化遗漏**
-   - 只更新 `package.nls.json` 而忘记 `package.nls.zh-cn.json`
-   - 忘记更新 `l10n/bundle.l10n.zh-cn.json` 中的相关翻译
-
 ## 快速搜索命令
 
 ### 变更前：确认所有引用位置
 ```bash
 # 查找当前 Provider ID 的所有引用
-grep -rn "'antigravity'" src/ package.json package.nls*.json
+grep -rn "'antigravity'" src/ package.json
 
 # 查找比较逻辑（重点检查 use-usage.ts 和 use-view.ts）
 grep -rn "providerId ===" src/composables/
@@ -197,7 +177,7 @@ npm run typecheck
 
 #### 步骤 1: 搜索所有引用
 ```bash
-grep -rn "'google'" src/ package.json package.nls*.json
+grep -rn "'google'" src/ package.json
 ```
 
 #### 步骤 2: 更新 package.json（2 处）
@@ -236,26 +216,13 @@ grep -rn "'google'" src/ package.json package.nls*.json
 }
 ```
 
-#### 步骤 3: 更新本地化文件
-```json
-// package.nls.json
-{
-  "configuration.accounts.providerId.markdownDescription": "Provider type: `openai` (OpenAI), `google-antigravity` (Google Antigravity), `github-copilot` (GitHub Copilot), `gemini-cli` (Gemini CLI), `zhipu` (Zhipu AI), `zai` (Z.ai)"
-}
-
-// package.nls.zh-cn.json
-{
-  "configuration.accounts.providerId.markdownDescription": "服务商类型：`openai`（OpenAI）、`google-antigravity`（Google Antigravity）、`github-copilot`（GitHub Copilot）、`gemini-cli`（Gemini CLI）、`zhipu`（智谱 AI）、`zai`（Z.ai）"
-}
-```
-
-#### 步骤 4: 更新 TypeScript 类型
+#### 步骤 3: 更新 TypeScript 类型
 ```typescript
 // src/types.ts
 export type ProviderId = 'openai' | 'zhipu' | 'zai' | 'google-antigravity' | 'github-copilot' | 'gemini-cli'
 ```
 
-#### 步骤 5: 更新 Provider 定义
+#### 步骤 4: 更新 Provider 定义
 ```typescript
 // src/providers.ts
 function getProviderDefinitions(): ProviderDefinition[] {
@@ -275,7 +242,7 @@ function getProviderDefinitions(): ProviderDefinition[] {
 }
 ```
 
-#### 步骤 6: 更新业务逻辑（⚠️ 容易遗漏）
+#### 步骤 5: 更新业务逻辑（⚠️ 容易遗漏）
 
 **src/composables/use-usage.ts**（2 处）：
 ```typescript
@@ -316,7 +283,7 @@ async function reloginAccount(accountId: string) {
 }
 ```
 
-#### 步骤 7: 更新文档
+#### 步骤 6: 更新文档
 ```markdown
 <!-- AGENTS.md -->
 | `google-antigravity` | Google Antigravity | OAuth | refresh_token (端口 51121) |
@@ -327,7 +294,7 @@ async function reloginAccount(accountId: string) {
 更新本文档中的示例代码，将 'google' 改为 'google-antigravity'
 ```
 
-#### 步骤 8: 验证
+#### 步骤 7: 验证
 ```bash
 # 1. 确认旧 ID 已完全替换
 grep -rn "'google'" src/ package.json | grep -v "google-"

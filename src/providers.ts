@@ -1,5 +1,4 @@
 import type { ProviderDefinition, ProviderId } from './types'
-import { t } from './i18n'
 
 function getProviderDefinitions(): ProviderDefinition[] {
   return [
@@ -9,16 +8,16 @@ function getProviderDefinitions(): ProviderDefinition[] {
       auth: {
         required: true,
         type: 'token',
-        placeholder: t('Enter OpenAI Access Token (JWT)'),
+        placeholder: 'Enter OpenAI Access Token (JWT)',
       },
     },
     {
       id: 'zhipu',
-      name: t('Zhipu AI'),
+      name: 'Zhipu AI',
       auth: {
         required: true,
         type: 'key',
-        placeholder: t('Enter Zhipu AI Key'),
+        placeholder: 'Enter Zhipu AI Key',
       },
     },
     {
@@ -27,7 +26,7 @@ function getProviderDefinitions(): ProviderDefinition[] {
       auth: {
         required: true,
         type: 'key',
-        placeholder: t('Enter Z.ai Key'),
+        placeholder: 'Enter Z.ai Key',
       },
     },
     {
@@ -36,7 +35,7 @@ function getProviderDefinitions(): ProviderDefinition[] {
       auth: {
         required: true,
         type: 'oauth',
-        placeholder: t('Login with Antigravity OAuth'),
+        placeholder: 'Login with Antigravity OAuth',
       },
     },
     {
@@ -45,7 +44,7 @@ function getProviderDefinitions(): ProviderDefinition[] {
       auth: {
         required: true,
         type: 'oauth',
-        placeholder: t('Login with GitHub OAuth'),
+        placeholder: 'Login with GitHub OAuth',
       },
     },
     {
@@ -54,7 +53,7 @@ function getProviderDefinitions(): ProviderDefinition[] {
       auth: {
         required: true,
         type: 'oauth',
-        placeholder: t('Login with Gemini CLI OAuth'),
+        placeholder: 'Login with Gemini CLI OAuth',
       },
     },
   ]

@@ -71,7 +71,7 @@ UI 样式参考 GitHub Copilot Status Bar 的设计规范，确保视觉一致�
 ### 账号管理 QuickPick
 
 - **Label**: 显示 Provider 名称 (e.g., "Google Antigravity")
-- **Description**: 显示账号 Alias 或 ID
+- **Description**: 显示账号名称或 ID
 
 ### 认证与存储
 

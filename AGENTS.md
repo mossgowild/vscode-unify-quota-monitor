@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-`unify-quota-monitor` 是一个 VS Code 扩展，使用 `reactive-vscode` 框架在侧边栏 Panel 中实时显示多个 AI Provider（OpenAI, Google Antigravity, GitHub Copilot, Gemini CLI, 智谱 AI/Zhipu AI, Z.ai）的真实用量配额。
+`unify-quota-monitor` 是一个 VS Code 扩展，使用 `reactive-vscode` 框架在侧边栏 Panel 中实时显示多个 Provider（OpenAI, Google Antigravity, GitHub Copilot, Gemini CLI, 智谱 AI/Zhipu AI, Z.ai）的真实用量配额。
 
 ## 快速开始
 
@@ -30,7 +30,6 @@ src/
 ├── extension.ts          # 插件入口，按顺序初始化 Composables
 ├── types.ts              # 核心类型定义（ProviderId, UsageCategory, Account, ProviderConfig）
 ├── providers.ts          # Provider 静态元数据定义（getProviderDefinition）
-├── i18n.ts               # 国际化工具（封装 vscode.l10n）
 ├── composables/
 │   ├── use-config.ts     # Model 层基础 - defineConfig 定义配置接口
 │   ├── use-accounts.ts   # Model 层辅助 - 账号 CRUD 封装（computed, ConfigurationTarget）

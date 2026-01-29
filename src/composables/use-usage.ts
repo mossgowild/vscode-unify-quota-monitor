@@ -2,7 +2,6 @@ import { defineService, ref, watchEffect } from 'reactive-vscode'
 import { window } from 'vscode'
 import type { Account, Provider, ProviderId, UsageCategory } from '../types'
 import { getAllProviderDefinitions } from '../providers'
-import { t } from '../i18n'
 import { useAccounts } from './use-accounts'
 import { useConfig, DEFAULT_AUTO_REFRESH } from './use-config'
 import {
@@ -162,7 +161,7 @@ export const useUsage = defineService(() => {
     if (data.rate_limit) {
       const formatWindowName = (seconds: number) => {
         const hours = Math.round(seconds / 3600)
-        return t('{hours}h Limit', { hours })
+        return `${hours}h Limit`
       }
 
       if (data.rate_limit.primary_window) {
@@ -248,7 +247,7 @@ export const useUsage = defineService(() => {
         }
 
         models.push({
-          name: l.type === 'TOKENS_LIMIT' ? t('Token Limit') : t('MCP Quota'),
+          name: l.type === 'TOKENS_LIMIT' ? 'Token Limit' : 'MCP Quota',
           limitType: l.type === 'TOKENS_LIMIT' ? 'token' : 'request',
           used: l.currentValue,
           total: l.usage,
@@ -530,7 +529,7 @@ export const useUsage = defineService(() => {
       alias: account.alias,
       credential: account.credential,
       usage: [],
-      error: errorMessage || t('Failed to fetch usage'),
+      error: errorMessage || 'Failed to fetch usage',
       lastUpdated: new Date().toISOString()
     }
   }
@@ -572,7 +571,7 @@ export const useUsage = defineService(() => {
       await window.withProgress(
         {
           location: { viewId: 'unifyQuotaMonitor.usageView' },
-          title: t('Refreshing usage...')
+          title: 'Refreshing usage...'
         },
         async () => {
           const promises = providers.value.map((p) => refreshProvider(p.id))

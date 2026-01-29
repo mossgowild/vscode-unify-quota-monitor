@@ -1,6 +1,6 @@
 # Unify Quota Monitor
 
-> A beautiful VS Code extension to monitor usage quotas for multiple AI providers in real-time
+> A beautiful VS Code extension to monitor usage quotas for multiple providers in real-time
 
 ![Preview](images/image.png)
 
@@ -82,7 +82,7 @@ That's it! You can now monitor your quota usage in real-time.
 1. Click the **$(plus)** button in the top-right corner
 2. Click on an account in the logged-in accounts list
 3. Choose an action:
-   - **Set Alias**: Modify account display name
+   - **Name**: Modify account display name
    - **Relogin**: Update authentication credentials
    - **Logout**: Remove the account
 
@@ -209,5 +209,3 @@ Issues and Pull Requests are welcome!
 - 🌍 Internationalization (English/Chinese)
 
 ---
-
-## 🌏 [中文文档](README_ZH.md)

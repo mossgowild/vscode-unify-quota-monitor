@@ -7,7 +7,6 @@ import {
 } from 'vscode'
 import type { ProviderId } from '../types'
 import { getAllProviderDefinitions, getProviderDefinition } from '../providers'
-import { t } from '../i18n'
 import { useUsage } from './use-usage'
 import { useAccounts } from './use-accounts'
 import { useConfig } from './use-config'
@@ -305,10 +304,8 @@ export function useView() {
   })
 
   function renderEmptyState(): string {
-    const title = t('No Active Account')
-    const description = t(
-      'Click icon buttons in the top right to manage accounts'
-    )
+    const title = 'No Active Account'
+    const description = 'Click icon buttons in the top right to manage accounts'
 
     const svg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
         <path d="M18 20V10" />
@@ -396,7 +393,7 @@ export function useView() {
     } else if (usage.limitType === 'token') {
       displayValue = `${(usage.used / 1000000).toFixed(1)}M / ${(usage.total / 1000000).toFixed(1)}M`
     } else {
-      const unit = usage.limitType === 'request' ? '' : ` ${t('credits')}`
+      const unit = usage.limitType === 'request' ? '' : ' credits'
       displayValue = `${usage.used} / ${usage.total}${unit}`
     }
 
@@ -408,7 +405,7 @@ export function useView() {
       let resetText = ''
 
       if (diffMs > 0) {
-        const resetTemplate = t('Resets in {time}', { time: '{{TIME}}' })
+        const resetTemplate = 'Resets in {{TIME}}'
         const totalHours = Math.floor(diffMs / 3600000)
         const days = Math.floor(totalHours / 24)
         const hours = totalHours % 24
@@ -431,7 +428,7 @@ export function useView() {
         const safeTemplate = resetTemplate.replace(/"/g, '&quot;')
         resetHtml = `<div class="usage-reset" data-reset-time="${usage.resetTime}" data-template="${safeTemplate}">${resetText}</div>`
       } else {
-        resetText = t('Resetting...')
+        resetText = 'Resetting...'
         resetHtml = `<div class="usage-reset">${resetText}</div>`
       }
     }
@@ -484,14 +481,14 @@ export function useView() {
     }
 
     items.push({
-      label: `$(plus) ${t('Add provider')}`,
-      description: t('Login to new provider'),
+      label: '$(plus) Add provider',
+      description: 'Login to new provider',
       action: 'addProvider'
     } as any)
 
     const selected = await window.showQuickPick(items as QuickPickItem[], {
-      title: t('Settings'),
-      placeHolder: t('Manage accounts or add new provider')
+      title: 'Settings',
+      placeHolder: 'Manage accounts or add new provider'
     })
 
     if (!selected) return
@@ -525,8 +522,8 @@ export function useView() {
     )
 
     const selected = await window.showQuickPick(items as QuickPickItem[], {
-      title: t('Select Provider'),
-      placeHolder: t('Select provider to add')
+      title: 'Select Provider',
+      placeHolder: 'Select provider to add'
     })
 
     if (!selected) return
@@ -570,28 +567,28 @@ export function useView() {
     const accountLabel = account.alias || accountId
 
     const items = [
-      { label: `$(arrow-left) ${t('Back')}`, action: 'back' },
+      { label: '$(arrow-left) Back', action: 'back' },
       { label: '', kind: QuickPickItemKind.Separator },
       {
-        label: `$(pencil) ${t('Set Alias')}`,
-        description: t('Modify account alias'),
+        label: '$(pencil) Name',
+        description: 'Modify account name',
         action: 'setAlias'
       },
       {
-        label: `$(sign-in) ${t('Relogin')}`,
-        description: t("Update this account's credentials"),
+        label: '$(sign-in) Relogin',
+        description: "Update this account's credentials",
         action: 'relogin'
       },
       {
-        label: `$(sign-out) ${t('Logout')}`,
-        description: t('Delete this account'),
+        label: '$(sign-out) Logout',
+        description: 'Delete this account',
         action: 'logout'
       }
     ]
 
     const selected = await window.showQuickPick(items, {
       title: `${providerDef?.name || account.providerId} - ${accountLabel}`,
-      placeHolder: t('Select action')
+      placeHolder: 'Select action'
     })
 
     if (!selected) return
@@ -612,10 +609,10 @@ export function useView() {
     if (!account) return
 
     const alias = await window.showInputBox({
-      title: t('Account Alias'),
-      prompt: t('Set an alias for this account'),
+      title: 'Account Name',
+      prompt: 'Set a name for this account',
       value: account.alias || '',
-      placeHolder: `${t('Current alias')}: ${account.alias || t('None')}`
+      placeHolder: `Current name: ${account.alias || 'None'}`
     })
 
     if (alias === undefined) return
@@ -658,15 +655,12 @@ export function useView() {
     const providerName = providerDef?.name || account.providerId
 
     const confirmAction = await window.showWarningMessage(
-      t(
-        'Are you sure you want to logout from {providerName} - {accountLabel}?',
-        { providerName, accountLabel }
-      ),
-      t('Confirm'),
-      t('Cancel')
+      `Are you sure you want to logout from ${providerName} - ${accountLabel}?`,
+      'Confirm',
+      'Cancel'
     )
 
-    if (confirmAction !== t('Confirm')) {
+    if (confirmAction !== 'Confirm') {
       await showAccountMenu()
       return
     }
@@ -674,10 +668,7 @@ export function useView() {
     await deleteAccountConfig(accountId)
 
     window.showInformationMessage(
-      t('Logged out from {providerName} - {accountLabel}', {
-        providerName,
-        accountLabel
-      })
+      `Logged out from ${providerName} - ${accountLabel}`
     )
 
     await showAccountMenu()
@@ -686,19 +677,19 @@ export function useView() {
   async function selectOpenAIMethod(): Promise<'oauth' | 'token' | null> {
     const items = [
       {
-        label: t('OAuth Login (Recommended)'),
-        description: t('For ChatGPT Plus/Pro'),
+        label: 'OAuth Login (Recommended)',
+        description: 'For ChatGPT Plus/Pro',
         detail: 'oauth'
       },
       {
         label: 'Access Token',
-        description: t('Manually enter JWT Token'),
+        description: 'Manually enter JWT Token',
         detail: 'token'
       }
     ]
 
     const selected = await window.showQuickPick(items, {
-      placeHolder: t('Select Login Method')
+      placeHolder: 'Select Login Method'
     })
 
     if (!selected) return null
@@ -707,11 +698,9 @@ export function useView() {
 
   async function inputAlias(): Promise<string | undefined> {
     return window.showInputBox({
-      title: t('Account Alias (Optional)'),
-      prompt: t(
-        'Set an alias for this account to distinguish multiple accounts'
-      ),
-      placeHolder: t('e.g. Work, Personal, Team, etc.')
+      title: 'Account Alias (Optional)',
+      prompt: 'Set an alias for this account to distinguish multiple accounts',
+      placeHolder: 'e.g. Work, Personal, Team, etc.'
     })
   }
 

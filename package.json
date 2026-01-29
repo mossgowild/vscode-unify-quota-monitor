@@ -1,8 +1,8 @@
 {
   "publisher": "mossgowild",
   "name": "unify-quota-monitor",
-  "displayName": "%displayName%",
-  "description": "%description%",
+  "displayName": "Unify Quota Monitor",
+  "description": "Monitor provider usage quotas in a beautiful panel view. Supports OpenAI, Google Antigravity, GitHub Copilot, Gemini CLI, Zhipu AI, and Z.ai.",
   "type": "module",
   "version": "0.0.1",
   "private": true,
@@ -19,7 +19,6 @@
     "Other"
   ],
   "main": "./dist/extension.cjs",
-  "l10n": "./l10n",
   "engines": {
     "vscode": "^1.99.0"
   },
@@ -28,18 +27,18 @@
   ],
   "contributes": {
     "configuration": {
-      "title": "%configuration.title%",
+      "title": "Unify Quota Monitor",
       "properties": {
         "unifyQuotaMonitor.providers": {
           "type": "array",
           "default": [],
-          "markdownDescription": "%configuration.providers.markdownDescription%",
+          "markdownDescription": "Configured provider accounts. Use the **Manage Accounts** command to add, edit, or remove accounts interactively.",
           "items": {
             "type": "object",
             "properties": {
               "provider": {
                 "type": "string",
-                "markdownDescription": "%configuration.providers.provider.markdownDescription%",
+                "markdownDescription": "Provider type: `openai` (OpenAI), `google-antigravity` (Google Antigravity), `github-copilot` (GitHub Copilot), `gemini-cli` (Gemini CLI), `zhipu` (Zhipu AI), `zai` (Z.ai)",
                 "enum": [
                   "openai",
                   "google-antigravity",
@@ -59,21 +58,21 @@
               },
               "name": {
                 "type": "string",
-                "markdownDescription": "%configuration.providers.name.markdownDescription%"
+                "markdownDescription": "Optional alias for this provider group."
               },
               "accounts": {
                 "type": "array",
-                "markdownDescription": "%configuration.providers.accounts.markdownDescription%",
+                "markdownDescription": "List of accounts for this provider.",
                 "items": {
                   "type": "object",
                   "properties": {
                     "credential": {
                       "type": "string",
-                      "markdownDescription": "%configuration.providers.accounts.credential.markdownDescription%"
+                      "markdownDescription": "Authentication credentials. OAuth tokens for OpenAI/Google/Gemini CLI/GitHub, or API keys for Zhipu AI/Z.ai"
                     },
                     "name": {
                       "type": "string",
-                      "markdownDescription": "%configuration.providers.accounts.name.markdownDescription%"
+                      "markdownDescription": "Display name for this account (shown in the quota panel)"
                     }
                   },
                   "required": [
@@ -94,15 +93,15 @@
             "enabled": true,
             "intervalMs": 180000
           },
-          "markdownDescription": "%configuration.autoRefresh.markdownDescription%",
+          "markdownDescription": "Automatic refresh settings for keeping quota data up-to-date",
           "properties": {
             "enabled": {
               "type": "boolean",
-              "markdownDescription": "%configuration.autoRefresh.enabled.markdownDescription%"
+              "markdownDescription": "Automatically refresh quota data at the specified interval"
             },
             "intervalMs": {
               "type": "number",
-              "markdownDescription": "%configuration.autoRefresh.intervalMs.markdownDescription%"
+              "markdownDescription": "Refresh interval in milliseconds. Default: 180000 (3 minutes). Minimum recommended: 60000 (1 minute)"
             }
           }
         }
@@ -111,12 +110,12 @@
     "commands": [
       {
         "command": "unifyQuotaMonitor.refresh",
-        "title": "%command.refresh.title%",
+        "title": "Refresh",
         "icon": "$(refresh)"
       },
       {
         "command": "unifyQuotaMonitor.settings",
-        "title": "%command.settings.title%",
+        "title": "Settings",
         "icon": "$(gear)"
       }
     ],
@@ -124,7 +123,7 @@
       "activitybar": [
         {
           "id": "unifyQuotaMonitor-sidebar",
-          "title": "%viewsContainers.activitybar.title%",
+          "title": "Quota",
           "icon": "$(dashboard)"
         }
       ]
@@ -134,9 +133,9 @@
         {
           "type": "webview",
           "id": "unifyQuotaMonitor.usageView",
-          "name": "%views.usageView.name%",
+          "name": "Quota",
           "icon": "$(dashboard)",
-          "contextualTitle": "%views.usageView.contextualTitle%"
+          "contextualTitle": "Quota"
         }
       ]
     },
