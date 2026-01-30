@@ -1,5 +1,6 @@
 import type { FetchUsageResult, UsageCategory } from '../../types'
 import { refreshGeminiCliToken } from '../auth/gemini'
+import { ERROR_MESSAGES } from '../../constants'
 
 interface GeminiCredential {
   accessToken?: string
@@ -61,7 +62,7 @@ export async function fetchGeminiCliUsage(
     return {
       success: false,
       usage: [],
-      error: 'Invalid credential format',
+      error: ERROR_MESSAGES.AUTH.INVALID_FORMAT,
       lastUpdated: new Date().toISOString()
     }
   }
@@ -86,7 +87,7 @@ export async function fetchGeminiCliUsage(
     return {
       success: false,
       usage: [],
-      error: 'No valid access token',
+      error: ERROR_MESSAGES.AUTH.NO_ACCESS_TOKEN,
       lastUpdated: new Date().toISOString()
     }
   }
@@ -148,7 +149,7 @@ export async function fetchGeminiCliUsage(
     return {
       success: false,
       usage: [],
-      error: 'Failed to load project',
+      error: ERROR_MESSAGES.GEMINI.PROJECT_LOAD_FAILED,
       lastUpdated: new Date().toISOString()
     }
   }
@@ -164,7 +165,7 @@ export async function fetchGeminiCliUsage(
     return {
       success: false,
       usage: [],
-      error: 'Failed to fetch quota',
+      error: ERROR_MESSAGES.GEMINI.QUOTA_FETCH_FAILED,
       lastUpdated: new Date().toISOString()
     }
   }

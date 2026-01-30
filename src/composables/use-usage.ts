@@ -9,6 +9,7 @@ import { fetchZhipuUsage } from '../utils/usage/zhipu'
 import { fetchGoogleAntigravityUsage } from '../utils/usage/google'
 import { fetchGeminiCliUsage } from '../utils/usage/gemini'
 import { getClaudeCodeUsage } from '../utils/usage/claude'
+import { ERROR_MESSAGES, UI_MESSAGES } from '../constants'
 
 export const useUsage = defineService(() => {
   const { getAccountsByProvider, updateCredential } = useAccounts()
@@ -85,7 +86,7 @@ export const useUsage = defineService(() => {
     const result = await getClaudeCodeUsage()
 
     if (!result.isInstalled) {
-      return createErrorAccount(account, result.error || 'Claude Code not installed')
+      return createErrorAccount(account, result.error || ERROR_MESSAGES.CLAUDE.NOT_INSTALLED)
     }
 
     const models: UsageCategory[] = [{
@@ -147,7 +148,7 @@ export const useUsage = defineService(() => {
       alias: account.alias,
       credential: account.credential,
       usage: [],
-      error: errorMessage || 'Failed to fetch usage',
+      error: errorMessage || ERROR_MESSAGES.GENERIC.FETCH_FAILED,
       lastUpdated: new Date().toISOString()
     }
   }
@@ -189,7 +190,7 @@ export const useUsage = defineService(() => {
       await window.withProgress(
         {
           location: { viewId: 'unifyQuotaMonitor.usageView' },
-          title: 'Refreshing usage...'
+          title: UI_MESSAGES.REFRESHING
         },
         async () => {
           const promises = providers.value.map((p) => refreshProvider(p.id))

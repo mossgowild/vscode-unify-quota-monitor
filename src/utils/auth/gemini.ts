@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { env, window, Uri } from 'vscode'
 import { waitForOAuthCallback } from './oauth'
+import { ERROR_MESSAGES, UI_TEXT, PROVIDERS } from '../../constants'
 
 // Official Gemini CLI OAuth credentials (from google-gemini/gemini-cli open source)
 const GEMINI_CLI_OAUTH = {
@@ -29,7 +30,7 @@ export async function loginWithGeminiCli(): Promise<string> {
   const result = await window.withProgress(
     {
       location: { viewId: 'unifyQuotaMonitor.usageView' },
-      title: 'Waiting for Gemini CLI authorization...',
+      title: UI_TEXT.PROGRESS.WAITING_AUTH(PROVIDERS.GEMINI.NAME),
       cancellable: true
     },
     async () => {
@@ -38,7 +39,7 @@ export async function loginWithGeminiCli(): Promise<string> {
   )
 
   if (!result) {
-    throw new Error('Authentication failed')
+    throw new Error(ERROR_MESSAGES.AUTH.FAILED)
   }
 
   // Exchange code for tokens
@@ -57,12 +58,12 @@ export async function loginWithGeminiCli(): Promise<string> {
 
   if (!response.ok) {
     const error = await response.text()
-    throw new Error(`Token exchange failed: ${error}`)
+    throw new Error(ERROR_MESSAGES.AUTH.TOKEN_EXCHANGE_FAILED(error))
   }
 
   const tokens = await response.json() as { refresh_token?: string; access_token: string; expires_in: number; token_type: string }
   if (!tokens.refresh_token) {
-    throw new Error('No refresh token returned')
+    throw new Error(ERROR_MESSAGES.AUTH.NO_REFRESH_TOKEN)
   }
 
   const credentialData = {

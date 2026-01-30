@@ -15,6 +15,7 @@ import { loginWithApiKey } from '../utils/auth/api-key'
 import { loginWithGitHub } from '../utils/auth/github'
 import { loginWithGeminiCli } from '../utils/auth/gemini'
 import { checkClaudeCodeInstalled } from '../utils/usage/claude'
+import { ERROR_MESSAGES, UI_MESSAGES, UI_TEXT } from '../constants'
 
 export function useView() {
   const { 
@@ -301,8 +302,8 @@ export function useView() {
   })
 
   function renderEmptyState(): string {
-    const title = 'No Active Account'
-    const description = 'Click icon buttons in the top right to manage accounts'
+    const title = UI_MESSAGES.NO_ACTIVE_ACCOUNT.TITLE
+    const description = UI_MESSAGES.NO_ACTIVE_ACCOUNT.DESCRIPTION
 
     const svg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
         <path d="M18 20V10" />
@@ -402,7 +403,7 @@ export function useView() {
       let resetText = ''
 
       if (diffMs > 0) {
-        const resetTemplate = 'Resets in {{TIME}}'
+        const resetTemplate = UI_MESSAGES.USAGE_ITEM.RESET_TEMPLATE
         const totalHours = Math.floor(diffMs / 3600000)
         const days = Math.floor(totalHours / 24)
         const hours = totalHours % 24
@@ -425,7 +426,7 @@ export function useView() {
         const safeTemplate = resetTemplate.replace(/"/g, '&quot;')
         resetHtml = `<div class="usage-reset" data-reset-time="${usage.resetTime}" data-template="${safeTemplate}">${resetText}</div>`
       } else {
-        resetText = 'Resetting...'
+        resetText = UI_MESSAGES.USAGE_ITEM.RESETTING
         resetHtml = `<div class="usage-reset">${resetText}</div>`
       }
     }
@@ -478,14 +479,14 @@ export function useView() {
     }
 
     items.push({
-      label: '$(plus) Add provider',
-      description: 'Login to new provider',
+      label: UI_TEXT.ACTIONS.ADD_PROVIDER,
+      description: UI_TEXT.ACTIONS.ADD_PROVIDER_DESC,
       action: 'addProvider'
     } as any)
 
     const selected = await window.showQuickPick(items as QuickPickItem[], {
-      title: 'Settings',
-      placeHolder: 'Manage accounts or add new provider'
+      title: UI_TEXT.TITLES.SETTINGS,
+      placeHolder: UI_TEXT.PLACEHOLDERS.MANAGE_ACCOUNTS
     })
 
     if (!selected) return
@@ -510,17 +511,17 @@ export function useView() {
           label: p.name,
           description:
             p.auth.type === 'oauth'
-              ? 'OAuth Login'
+              ? UI_TEXT.AUTH_TYPE.OAUTH
               : p.auth.type === 'key'
-                ? 'API Key'
-                : 'Access Token',
+                ? UI_TEXT.AUTH_TYPE.API_KEY
+                : UI_TEXT.AUTH_TYPE.ACCESS_TOKEN,
           providerId: p.id
         }) as QuickPickItem & { providerId: ProviderId }
     )
 
     const selected = await window.showQuickPick(items as QuickPickItem[], {
-      title: 'Select Provider',
-      placeHolder: 'Select provider to add'
+      title: UI_TEXT.TITLES.SELECT_PROVIDER,
+      placeHolder: UI_TEXT.PLACEHOLDERS.SELECT_PROVIDER
     })
 
     if (!selected) return
@@ -540,7 +541,7 @@ export function useView() {
     } else if (providerId === 'claude-code') {
       const isInstalled = await checkClaudeCodeInstalled()
       if (!isInstalled) {
-        window.showErrorMessage('Claude Code not installed. Run `npm install -g @anthropic-ai/claude-code`')
+        window.showErrorMessage(ERROR_MESSAGES.CLAUDE.NOT_INSTALLED)
         return
       }
       credential = 'local'
@@ -562,28 +563,28 @@ export function useView() {
     const accountLabel = account.alias || accountId
 
     const items = [
-      { label: '$(arrow-left) Back', action: 'back' },
+      { label: UI_TEXT.ACTIONS.BACK, action: 'back' },
       { label: '', kind: QuickPickItemKind.Separator },
       {
-        label: '$(pencil) Name',
-        description: 'Modify account name',
+        label: UI_TEXT.ACTIONS.NAME,
+        description: UI_TEXT.ACTIONS.NAME_DESC,
         action: 'setAlias'
       },
       {
-        label: '$(sign-in) Relogin',
-        description: "Update this account's credentials",
+        label: UI_TEXT.ACTIONS.RELOGIN,
+        description: UI_TEXT.ACTIONS.RELOGIN_DESC,
         action: 'relogin'
       },
       {
-        label: '$(sign-out) Logout',
-        description: 'Delete this account',
+        label: UI_TEXT.ACTIONS.LOGOUT,
+        description: UI_TEXT.ACTIONS.LOGOUT_DESC,
         action: 'logout'
       }
     ]
 
     const selected = await window.showQuickPick(items, {
       title: `${providerDef?.name || account.providerId} - ${accountLabel}`,
-      placeHolder: 'Select action'
+      placeHolder: UI_TEXT.PLACEHOLDERS.SELECT_ACTION
     })
 
     if (!selected) return
@@ -604,10 +605,10 @@ export function useView() {
     if (!account) return
 
     const alias = await window.showInputBox({
-      title: 'Account Name',
-      prompt: 'Set a name for this account',
+      title: UI_TEXT.TITLES.ACCOUNT_NAME,
+      prompt: UI_TEXT.PROMPTS.SET_NAME,
       value: account.alias || '',
-      placeHolder: `Current name: ${account.alias || 'None'}`
+      placeHolder: UI_TEXT.PLACEHOLDERS.CURRENT_NAME(account.alias || 'None')
     })
 
     if (alias === undefined) return
@@ -628,7 +629,7 @@ export function useView() {
     } else if (account.providerId === 'claude-code') {
       const isInstalled = await checkClaudeCodeInstalled()
       if (!isInstalled) {
-        window.showErrorMessage('Claude Code not installed. Run `npm install -g @anthropic-ai/claude-code`')
+        window.showErrorMessage(ERROR_MESSAGES.CLAUDE.NOT_INSTALLED)
         return
       }
       credential = 'local'
@@ -648,7 +649,7 @@ export function useView() {
     const providerName = providerDef?.name || account.providerId
 
     const confirmAction = await window.showWarningMessage(
-      `Are you sure you want to logout from ${providerName} - ${accountLabel}?`,
+      UI_MESSAGES.ACCOUNT.LOGOUT_CONFIRM(providerName, accountLabel),
       'Confirm',
       'Cancel'
     )
@@ -661,7 +662,7 @@ export function useView() {
     await deleteAccountConfig(accountId)
 
     window.showInformationMessage(
-      `Logged out from ${providerName} - ${accountLabel}`
+      UI_MESSAGES.ACCOUNT.LOGGED_OUT(providerName, accountLabel)
     )
 
     await showAccountMenu()
@@ -669,9 +670,9 @@ export function useView() {
 
   async function inputAlias(): Promise<string | undefined> {
     return window.showInputBox({
-      title: 'Account Alias (Optional)',
-      prompt: 'Set an alias for this account to distinguish multiple accounts',
-      placeHolder: 'e.g. Work, Personal, Team, etc.'
+      title: UI_TEXT.TITLES.ACCOUNT_ALIAS,
+      prompt: UI_TEXT.PROMPTS.SET_ALIAS,
+      placeHolder: UI_TEXT.PLACEHOLDERS.ALIAS_EXAMPLE
     })
   }
 

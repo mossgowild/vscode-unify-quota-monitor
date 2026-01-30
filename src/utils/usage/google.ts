@@ -1,5 +1,6 @@
 import type { FetchUsageResult, UsageCategory } from '../../types'
 import { refreshAntigravityToken } from '../auth/antigravity'
+import { ERROR_MESSAGES } from '../../constants'
 
 const modelMap = new Map([
   ['claude-opus-4-5-thinking', 'Claude Opus 4.5'],
@@ -37,7 +38,7 @@ export async function fetchGoogleAntigravityUsage(
       return {
         success: false,
         usage: [],
-        error: `API Error: ${quotaResponse.status} ${quotaResponse.statusText}`,
+        error: ERROR_MESSAGES.API.REQUEST_FAILED(quotaResponse.status, quotaResponse.statusText),
         lastUpdated: new Date().toISOString()
       }
     }
@@ -76,7 +77,7 @@ export async function fetchGoogleAntigravityUsage(
     return {
       success: false,
       usage: [],
-      error: `Error: ${e.message || e}`,
+      error: ERROR_MESSAGES.API.UNKNOWN(e.message || e),
       lastUpdated: new Date().toISOString()
     }
   }

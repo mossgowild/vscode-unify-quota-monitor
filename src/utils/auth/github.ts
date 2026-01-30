@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { authentication } from 'vscode'
+import { ERROR_MESSAGES } from '../../constants'
 
 export async function loginWithGitHub(): Promise<string> {
   await authentication.getSession('github', ['read:user'], { createIfNone: true })
@@ -27,7 +28,7 @@ export async function exchangeGitHubTokenForCopilot(githubToken: string): Promis
   })
 
   if (!response.ok) {
-    throw new Error(`Failed to exchange token: ${response.statusText}`)
+    throw new Error(ERROR_MESSAGES.AUTH.TOKEN_EXCHANGE_FAILED(response.statusText))
   }
 
   const data = await response.json() as any

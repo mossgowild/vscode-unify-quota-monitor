@@ -1,27 +1,28 @@
 import { env, window, Uri } from 'vscode'
+import { ERROR_MESSAGES, PROVIDERS, UI_TEXT } from '../../constants'
 
 export async function loginWithApiKey(
   providerId: 'zhipu' | 'zai'
 ): Promise<string> {
   const config: Record<string, any> = {
     zhipu: {
-      providerName: 'Zhipu AI',
+      providerName: PROVIDERS.ZHIPU.NAME,
       helpUrl: 'https://open.bigmodel.cn/usercenter/apikeys',
       prefix: 'sk.',
-      buttonTextKey: 'Open docs to get Key'
+      buttonTextKey: UI_TEXT.ACTIONS.OPEN_DOCS
     },
     zai: {
-      providerName: 'Z.ai',
+      providerName: PROVIDERS.ZAI.NAME,
       helpUrl: 'https://zai.sh/',
       prefix: 'zai_',
-      buttonTextKey: 'Open website to get Key'
+      buttonTextKey: UI_TEXT.ACTIONS.OPEN_WEBSITE
     }
   }
 
   const providerConfig = config[providerId]
 
   const openDocsAction = await window.showInformationMessage(
-    `${providerConfig.providerName} API Key`,
+    UI_TEXT.TITLES.API_KEY_INFO(providerConfig.providerName),
     providerConfig.buttonTextKey
   )
 
@@ -30,23 +31,23 @@ export async function loginWithApiKey(
   }
 
   const apiKey = await window.showInputBox({
-    title: `Enter ${providerConfig.providerName} API Key`,
-    prompt: `Format: ${providerConfig.prefix}xxxxxxxxx (starts with ${providerConfig.prefix})`,
+    title: UI_TEXT.TITLES.ENTER_KEY(providerConfig.providerName),
+    prompt: UI_TEXT.PROMPTS.KEY_FORMAT(providerConfig.prefix),
     password: true,
     ignoreFocusOut: true,
     validateInput: (value: string) => {
       if (!value?.trim()) {
-        return 'API Key cannot be empty'
+        return ERROR_MESSAGES.AUTH.API_KEY_EMPTY
       }
       if (!value.startsWith(providerConfig.prefix)) {
-        return `Invalid API Key format, should start with ${providerConfig.prefix}`
+        return ERROR_MESSAGES.AUTH.API_KEY_INVALID(providerConfig.prefix)
       }
       return null
     }
   })
 
   if (!apiKey) {
-    throw new Error('Canceled')
+    throw new Error(ERROR_MESSAGES.AUTH.CANCELED)
   }
 
   return apiKey

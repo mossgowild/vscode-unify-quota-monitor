@@ -1,5 +1,6 @@
 import type { FetchUsageResult, UsageCategory } from '../../types'
 import { getGitHubAccessToken } from '../auth/github'
+import { ERROR_MESSAGES } from '../../constants'
 
 export async function fetchGitHubCopilotUsage(): Promise<FetchUsageResult> {
   const githubToken = await getGitHubAccessToken()
@@ -7,7 +8,7 @@ export async function fetchGitHubCopilotUsage(): Promise<FetchUsageResult> {
     return {
       success: false,
       usage: [],
-      error: 'No GitHub token. Please re-login.',
+      error: ERROR_MESSAGES.AUTH.NO_GITHUB_TOKEN,
       lastUpdated: new Date().toISOString()
     }
   }
@@ -31,7 +32,7 @@ export async function fetchGitHubCopilotUsage(): Promise<FetchUsageResult> {
       return {
         success: false,
         usage: [],
-        error: `API Error: ${response.status} ${response.statusText}`,
+        error: ERROR_MESSAGES.API.REQUEST_FAILED(response.status, response.statusText),
         lastUpdated: new Date().toISOString()
       }
     }
@@ -61,7 +62,7 @@ export async function fetchGitHubCopilotUsage(): Promise<FetchUsageResult> {
       return {
         success: false,
         usage: [],
-        error: `No usage data. Keys: ${keys}`,
+        error: ERROR_MESSAGES.API.NO_DATA(`Keys: ${keys}`),
         lastUpdated: new Date().toISOString()
       }
     }
@@ -75,7 +76,7 @@ export async function fetchGitHubCopilotUsage(): Promise<FetchUsageResult> {
     return {
       success: false,
       usage: [],
-      error: `Error: ${e.message || e}`,
+      error: ERROR_MESSAGES.API.UNKNOWN(e.message || e),
       lastUpdated: new Date().toISOString()
     }
   }

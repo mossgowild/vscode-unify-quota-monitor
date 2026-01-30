@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { env, window, Uri } from 'vscode'
 import { waitForOAuthCallback } from './oauth'
+import { ERROR_MESSAGES, UI_TEXT, PROVIDERS } from '../../constants'
 
 const ANTIGRAVITY_OAUTH = {
   authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
@@ -32,7 +33,7 @@ export async function exchangeAntigravityCode(code: string): Promise<any> {
 
   if (!response.ok) {
     const error = await response.text()
-    throw new Error(`Token exchange failed: ${error}`)
+    throw new Error(ERROR_MESSAGES.AUTH.TOKEN_EXCHANGE_FAILED(error))
   }
 
   return response.json()
@@ -54,7 +55,7 @@ export async function loginWithAntigravity(): Promise<string> {
   const result = await window.withProgress(
     {
       location: { viewId: 'unifyQuotaMonitor.usageView' },
-      title: 'Waiting for Antigravity authorization...',
+      title: UI_TEXT.PROGRESS.WAITING_AUTH(PROVIDERS.ANTIGRAVITY.NAME),
       cancellable: true
     },
     async () => {
@@ -63,12 +64,12 @@ export async function loginWithAntigravity(): Promise<string> {
   )
 
   if (!result) {
-    throw new Error('Authentication failed')
+    throw new Error(ERROR_MESSAGES.AUTH.FAILED)
   }
 
   const tokens = await exchangeAntigravityCode(result)
   if (!tokens.refresh_token) {
-    throw new Error('No refresh token returned')
+    throw new Error(ERROR_MESSAGES.AUTH.NO_REFRESH_TOKEN)
   }
 
   return tokens.refresh_token
@@ -88,7 +89,7 @@ export async function refreshAntigravityToken(refreshToken: string): Promise<str
   })
 
   if (!response.ok) {
-    throw new Error('Antigravity token refresh failed')
+    throw new Error(ERROR_MESSAGES.AUTH.REFRESH_FAILED)
   }
 
   // eslint-disable-next-line @typescript-eslint/naming-convention

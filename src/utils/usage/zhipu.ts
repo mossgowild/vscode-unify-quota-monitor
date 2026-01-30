@@ -1,4 +1,5 @@
 import type { FetchUsageResult, UsageCategory } from '../../types'
+import { ERROR_MESSAGES } from '../../constants'
 
 export async function fetchZhipuUsage(
   providerId: 'zhipu' | 'zai',
@@ -21,7 +22,7 @@ export async function fetchZhipuUsage(
       return {
         success: false,
         usage: [],
-        error: `API Error: ${response.status} ${response.statusText}`,
+        error: ERROR_MESSAGES.API.REQUEST_FAILED(response.status, response.statusText),
         lastUpdated: new Date().toISOString()
       }
     }
@@ -73,7 +74,7 @@ export async function fetchZhipuUsage(
     return {
       success: false,
       usage: [],
-      error: `Error: ${e.message || e}`,
+      error: ERROR_MESSAGES.API.UNKNOWN(e.message || e),
       lastUpdated: new Date().toISOString()
     }
   }

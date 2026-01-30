@@ -2,6 +2,7 @@ import { promises as fs } from 'node:fs'
 import { readdir, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { homedir } from 'node:os'
+import { ERROR_MESSAGES } from '../../constants'
 
 const CLAUDE_DIR = join(homedir(), '.claude')
 const PROJECTS_DIR = join(CLAUDE_DIR, 'projects')
@@ -169,7 +170,7 @@ export async function getClaudeCodeUsage(): Promise<ClaudeCodeUsageResult> {
       costUSD: 0,
       remainingPercent: 0,
       resetTime: null,
-      error: 'Claude Code not installed. Run `npm install -g @anthropic-ai/claude-code`',
+      error: ERROR_MESSAGES.CLAUDE.NOT_INSTALLED,
     }
   }
 
@@ -182,7 +183,7 @@ export async function getClaudeCodeUsage(): Promise<ClaudeCodeUsageResult> {
       costUSD: 0,
       remainingPercent: 100,
       resetTime: new Date(Date.now() + FIVE_HOURS_MS),
-      error: 'No usage data yet. Start using Claude Code to see quota.',
+      error: ERROR_MESSAGES.CLAUDE.NO_USAGE,
     }
   }
 

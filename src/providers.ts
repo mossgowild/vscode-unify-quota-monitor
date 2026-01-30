@@ -1,59 +1,60 @@
 import type { ProviderDefinition, ProviderId } from './types'
+import { PROVIDERS, UI_TEXT } from './constants'
 
 function getProviderDefinitions(): ProviderDefinition[] {
   return [
     {
-      id: 'zhipu',
-      name: 'Zhipu AI',
+      id: PROVIDERS.ZHIPU.ID,
+      name: PROVIDERS.ZHIPU.NAME,
       auth: {
         required: true,
         type: 'key',
-        placeholder: 'Enter Zhipu AI Key',
+        placeholder: UI_TEXT.PLACEHOLDERS.ENTER_KEY(PROVIDERS.ZHIPU.NAME),
       },
     },
     {
-      id: 'zai',
-      name: 'Z.ai',
+      id: PROVIDERS.ZAI.ID,
+      name: PROVIDERS.ZAI.NAME,
       auth: {
         required: true,
         type: 'key',
-        placeholder: 'Enter Z.ai Key',
+        placeholder: UI_TEXT.PLACEHOLDERS.ENTER_KEY(PROVIDERS.ZAI.NAME),
       },
     },
     {
-      id: 'google-antigravity',
-      name: 'Google Antigravity',
+      id: PROVIDERS.ANTIGRAVITY.ID,
+      name: PROVIDERS.ANTIGRAVITY.NAME,
       auth: {
         required: true,
         type: 'oauth',
-        placeholder: 'Login with Antigravity OAuth',
+        placeholder: UI_TEXT.PLACEHOLDERS.LOGIN_OAUTH('Antigravity'),
       },
     },
     {
-      id: 'github-copilot',
-      name: 'GitHub Copilot',
+      id: PROVIDERS.GITHUB.ID,
+      name: PROVIDERS.GITHUB.NAME,
       auth: {
         required: true,
         type: 'oauth',
-        placeholder: 'Login with GitHub OAuth',
+        placeholder: UI_TEXT.PLACEHOLDERS.LOGIN_OAUTH('GitHub'),
       },
     },
     {
-      id: 'gemini-cli',
-      name: 'Gemini CLI',
+      id: PROVIDERS.GEMINI.ID,
+      name: PROVIDERS.GEMINI.NAME,
       auth: {
         required: true,
         type: 'oauth',
-        placeholder: 'Login with Gemini CLI OAuth',
+        placeholder: UI_TEXT.PLACEHOLDERS.LOGIN_OAUTH('Gemini CLI'),
       },
     },
     {
-      id: 'claude-code',
-      name: 'Claude Code',
+      id: PROVIDERS.CLAUDE.ID,
+      name: PROVIDERS.CLAUDE.NAME,
       auth: {
         required: false,
         type: 'local',
-        placeholder: 'Read from local logs',
+        placeholder: UI_TEXT.PLACEHOLDERS.LOCAL_LOGS,
       },
     },
   ]

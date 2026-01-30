@@ -29,6 +29,7 @@ npx eslint
 src/
 ├── extension.ts          # 插件入口，按顺序初始化 Composables
 ├── types.ts              # 核心类型定义（ProviderId, UsageCategory, Account, ProviderConfig）
+├── constants.ts          # 全局常量定义（错误消息、UI 文本）
 ├── providers.ts          # Provider 静态元数据定义（getProviderDefinition）
 ├── composables/
 │   ├── use-config.ts     # Model 层基础 - defineConfig 定义配置接口
