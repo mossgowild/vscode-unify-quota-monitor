@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-`unify-quota-monitor` 是一个 VS Code 扩展，使用 `reactive-vscode` 框架在侧边栏 Panel 中实时显示多个 Provider（Google Antigravity, GitHub Copilot, Gemini CLI, Claude Code, 智谱 AI/Zhipu AI, Z.ai）的真实用量配额。
+`unify-quota-monitor` 是一个 VS Code 扩展，使用 `reactive-vscode` 框架在侧边栏 Panel 中实时显示多个 Provider（Google Antigravity, GitHub Copilot, Gemini CLI, Claude Code, 智谱 AI/Zhipu AI, Z.ai, Kimi Code）的真实用量配额。
 
 ## 快速开始
 
@@ -42,13 +42,12 @@ src/
     │   ├── antigravity.ts # Google Antigravity OAuth 认证流程
     │   ├── gemini.ts     # Gemini CLI OAuth 认证流程
     │   ├── github.ts     # GitHub Copilot 认证流程
-    │   └── api-key.ts    # API Key 输入交互逻辑（Zhipu AI, Z.ai）
+    │   └── api-key.ts    # API Key 输入交互逻辑（Zhipu AI, Z.ai, Kimi Code）
     └── usage/
         ├── google.ts     # Google Antigravity 用量 API 调用
         ├── gemini.ts     # Gemini CLI 用量 API 调用
         ├── github.ts     # GitHub Copilot 用量 API 调用
-        ├── zhipu.ts      # Zhipu AI / Z.ai 用量 API 调用
-        └── claude.ts     # Claude Code 本地日志读取与计费计算
+        ├── zhipu.ts      # Zhipu AI / Z.ai 用量 API 调用│       ├── kimi.ts       # Kimi Code 用量 API 调用        └── claude.ts     # Claude Code 本地日志读取与计费计算
 ```
 
 **初始化顺序**（extension.ts）：
@@ -96,6 +95,7 @@ View (useView) → Model (config) → Controller (useUsage) → View (useView)
 | `zai` | Z.ai | API Key | API Key |
 | `github-copilot` | GitHub Copilot | OAuth | VS Code authentication.getSession() |
 | `claude-code` | Claude Code | Local Log | 读取本地日志文件计算 5 小时窗口用量 |
+| `kimi-code` | Kimi Code | API Key | API Key (前缀 sk-kimi) |
 
 ### 核心特性
 
@@ -116,12 +116,19 @@ View (useView) → Model (config) → Controller (useUsage) → View (useView)
 | Zhipu AI / Z.ai | Token / Request | Token 限额 + MCP 配额 |
 | GitHub Copilot | Request | Premium Request 限额 |
 | Claude Code | Cost / Time | 5小时窗口费用估算 |
+| Kimi Code | Percentage | 本周用量百分比 + 频限明细百分比（Rate Limit Details） |
 
 **Gemini CLI 特殊处理**:
 - API 返回 `buckets[]` 数组，每个 bucket 包含 `modelId`, `remainingFraction`, `resetTime`
 - `remainingFraction` 是**剩余比例**（0.0-1.0），不是具体请求次数
 - 显示为已使用百分比: `(1 - remainingFraction) * 100`
 - 支持 20+ 模型映射（`gemini-3-pro-preview` → "Gemini 3 Pro"）
+
+**Kimi Code 特殊处理**:
+- 所有用量项（Weekly Usage 和 Rate Limit Details）均显示为百分比
+- API 返回的 `used` 和 `limit` 字段用于计算百分比: `(used / limit) * 100`
+- Weekly Usage 始终显示在第一位，Rate Limit Details 按使用百分比升序排列
+- 支持多个时间窗口的频限明细，统一显示为 "Rate Limit Details"
 
 ### 数据流示例
 

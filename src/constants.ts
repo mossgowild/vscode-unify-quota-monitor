@@ -39,6 +39,7 @@ export const PROVIDERS = {
   GITHUB: { ID: 'github-copilot', NAME: 'GitHub Copilot' },
   GEMINI: { ID: 'gemini-cli', NAME: 'Gemini CLI' },
   CLAUDE: { ID: 'claude-code', NAME: 'Claude Code' },
+  KIMI: { ID: 'kimi-code', NAME: 'Kimi Code' },
 } as const satisfies Record<string, { ID: ProviderId; NAME: string }>;
 
 export const UI_TEXT = {

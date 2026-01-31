@@ -2,7 +2,7 @@ import { env, window, Uri } from 'vscode'
 import { ERROR_MESSAGES, PROVIDERS, UI_TEXT } from '../../constants'
 
 export async function loginWithApiKey(
-  providerId: 'zhipu' | 'zai'
+  providerId: 'zhipu' | 'zai' | 'kimi-code'
 ): Promise<string> {
   const config: Record<string, any> = {
     zhipu: {
@@ -16,18 +16,27 @@ export async function loginWithApiKey(
       helpUrl: 'https://zai.sh/',
       prefix: 'zai_',
       buttonTextKey: UI_TEXT.ACTIONS.OPEN_WEBSITE
+    },
+    'kimi-code': {
+      providerName: PROVIDERS.KIMI.NAME,
+      helpUrl: '',
+      prefix: 'sk-kimi',
+      buttonTextKey: ''
     }
   }
 
   const providerConfig = config[providerId]
 
-  const openDocsAction = await window.showInformationMessage(
-    UI_TEXT.TITLES.API_KEY_INFO(providerConfig.providerName),
-    providerConfig.buttonTextKey
-  )
+  // Show help button only if helpUrl is provided
+  if (providerConfig.helpUrl && providerConfig.buttonTextKey) {
+    const openDocsAction = await window.showInformationMessage(
+      UI_TEXT.TITLES.API_KEY_INFO(providerConfig.providerName),
+      providerConfig.buttonTextKey
+    )
 
-  if (openDocsAction) {
-    await env.openExternal(Uri.parse(providerConfig.helpUrl))
+    if (openDocsAction) {
+      await env.openExternal(Uri.parse(providerConfig.helpUrl))
+    }
   }
 
   const apiKey = await window.showInputBox({

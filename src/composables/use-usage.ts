@@ -9,6 +9,7 @@ import { fetchZhipuUsage } from '../utils/usage/zhipu'
 import { fetchGoogleAntigravityUsage } from '../utils/usage/google'
 import { fetchGeminiCliUsage } from '../utils/usage/gemini'
 import { getClaudeCodeUsage } from '../utils/usage/claude'
+import { fetchKimiCodeUsage } from '../utils/usage/kimi'
 import { ERROR_MESSAGES, UI_MESSAGES } from '../constants'
 
 export const useUsage = defineService(() => {
@@ -139,6 +140,22 @@ export const useUsage = defineService(() => {
     }
   }
 
+  async function fetchKimiCodeUsageWrapper(
+    account: Pick<Account, 'id' | 'alias' | 'credential'>
+  ): Promise<Account | null> {
+    const result = await fetchKimiCodeUsage(account.credential)
+    if (!result.success) {
+      return createErrorAccount(account, result.error)
+    }
+    return {
+      id: account.id,
+      alias: account.alias,
+      credential: account.credential,
+      usage: result.usage,
+      lastUpdated: result.lastUpdated
+    }
+  }
+
   function createErrorAccount(
     account: Pick<Account, 'id' | 'alias' | 'credential'>,
     errorMessage?: string
@@ -169,6 +186,8 @@ export const useUsage = defineService(() => {
         return fetchGeminiCliUsageWrapper(account)
       } else if (providerId === 'claude-code') {
         return fetchClaudeCodeUsage(account)
+      } else if (providerId === 'kimi-code') {
+        return fetchKimiCodeUsageWrapper(account)
       } else {
         return fetchZhipuUsageWrapper(providerId as 'zhipu' | 'zai', account)
       }

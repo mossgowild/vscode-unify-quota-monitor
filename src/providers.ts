@@ -57,6 +57,15 @@ function getProviderDefinitions(): ProviderDefinition[] {
         placeholder: UI_TEXT.PLACEHOLDERS.LOCAL_LOGS,
       },
     },
+    {
+      id: PROVIDERS.KIMI.ID,
+      name: PROVIDERS.KIMI.NAME,
+      auth: {
+        required: true,
+        type: 'key',
+        placeholder: UI_TEXT.PLACEHOLDERS.ENTER_KEY(PROVIDERS.KIMI.NAME),
+      },
+    },
   ]
 }
 

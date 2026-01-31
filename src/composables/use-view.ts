@@ -546,7 +546,7 @@ export function useView() {
       }
       credential = 'local'
     } else {
-      credential = await loginWithApiKey(providerId as 'zhipu' | 'zai')
+      credential = await loginWithApiKey(providerId as 'zhipu' | 'zai' | 'kimi-code')
     }
 
     const alias = await inputAlias()
