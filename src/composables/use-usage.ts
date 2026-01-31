@@ -63,12 +63,7 @@ export const useUsage = defineService(() => {
   async function fetchGoogleUsage(
     account: Pick<Account, 'id' | 'alias' | 'credential'>
   ): Promise<Account | null> {
-    const result = await fetchGoogleAntigravityUsage(
-      account.credential,
-      async (newToken) => {
-        await updateCredential(account.id, newToken)
-      }
-    )
+    const result = await fetchGoogleAntigravityUsage(account.credential)
     if (!result.success) {
       return createErrorAccount(account, result.error)
     }

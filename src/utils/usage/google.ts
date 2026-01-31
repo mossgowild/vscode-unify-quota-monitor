@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import type { FetchUsageResult, UsageCategory } from '../../types'
 import { refreshAntigravityToken } from '../auth/antigravity'
 import { ERROR_MESSAGES } from '../../constants'
@@ -10,16 +11,13 @@ const modelMap = new Map([
 ])
 
 export async function fetchGoogleAntigravityUsage(
-  refreshToken: string,
-  onTokenRefreshed?: (newRefreshToken: string) => Promise<void>
+  refreshToken: string
 ): Promise<FetchUsageResult> {
   try {
+    // Google OAuth: refresh_token is long-lived, access_token is short-lived (1 hour).
+    // We only store refresh_token, and exchange it for a new access_token on each API call.
+    // Do NOT save access_token - it will overwrite the refresh_token and break future refreshes.
     const token = await refreshAntigravityToken(refreshToken)
-
-    // If token was refreshed, notify caller
-    if (token !== refreshToken && onTokenRefreshed) {
-      await onTokenRefreshed(token)
-    }
 
     const quotaResponse = await fetch(
       'https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels',
