@@ -4,6 +4,7 @@ export const ERROR_MESSAGES = {
   API: {
     REQUEST_FAILED: (status: number | string, statusText: string) => `API Error: ${status} ${statusText}`,
     UNKNOWN: (message: string) => `Error: ${message}`,
+    NETWORK_ERROR: (message: string) => `Error: ${message}`,
     NO_DATA: (context?: string) => `No usage data${context ? `. Context: ${context}` : ''}`,
   },
   AUTH: {
@@ -26,9 +27,6 @@ export const ERROR_MESSAGES = {
     PROJECT_LOAD_FAILED: 'Failed to load project',
     QUOTA_FETCH_FAILED: 'Failed to fetch quota',
   },
-  GENERIC: {
-    FETCH_FAILED: 'Failed to fetch usage',
-  }
 } as const;
 
 /* eslint-disable @typescript-eslint/naming-convention */

@@ -1,187 +1,189 @@
 # AGENTS.md
 
-## 项目概述
+## Project Overview
 
-`unify-quota-monitor` 是一个 VS Code 扩展，使用 `reactive-vscode` 框架在侧边栏 Panel 中实时显示多个 Provider（Google Antigravity, GitHub Copilot, Gemini CLI, Claude Code, 智谱 AI/Zhipu AI, Z.ai, Kimi Code）的真实用量配额。
+`unify-quota-monitor` is a VS Code extension that uses the `reactive-vscode` framework to display real-time usage quotas for multiple providers (Google Antigravity, GitHub Copilot, Gemini CLI, Claude Code, Zhipu AI, Z.ai, Kimi Code) in a sidebar Panel.
 
-## 快速开始
+## Quick Start
 
 ```bash
-# 安装依赖
+# Install dependencies
 npm install
 
-# 启动调试
+# Start debugging
 F5
 
-# 构建
+# Build
 npm run build
 
-# 类型检查
+# Type check
 npm run typecheck
 
 # Lint
 npx eslint
 ```
 
-## 目录结构
+## Directory Structure
 
 ```
 src/
-├── extension.ts          # 插件入口，按顺序初始化 Composables
-├── types.ts              # 核心类型定义（ProviderId, UsageCategory, Account, ProviderConfig）
-├── constants.ts          # 全局常量定义（错误消息、UI 文本）
-├── providers.ts          # Provider 静态元数据定义（getProviderDefinition）
+├── extension.ts          # Plugin entry point, initializes Composables in order
+├── types.ts              # Core type definitions (ProviderId, UsageCategory, Account, ProviderConfig)
+├── constants.ts          # Global constant definitions (error messages, UI text)
+├── providers.ts          # Provider static metadata definitions (getProviderDefinition)
 ├── composables/
-│   ├── use-config.ts     # Model 层基础 - defineConfig 定义配置接口
-│   ├── use-accounts.ts   # Model 层辅助 - 账号 CRUD 封装（computed, ConfigurationTarget）
-│   ├── use-usage.ts      # Controller 层 - defineService，数据获取与自动刷新
-│   └── use-view.ts       # View 层 - useWebviewView，HTML 生成与 UI 交互
+│   ├── use-config.ts     # Model layer foundation - defineConfig defines configuration interface
+│   ├── use-accounts.ts   # Model layer helper - Account CRUD wrapper (computed, ConfigurationTarget)
+│   ├── use-usage.ts      # Controller layer - defineService, data fetching and auto-refresh
+│   └── use-view.ts       # View layer - useWebviewView, HTML generation and UI interaction
 └── utils/
     ├── auth/
-    │   ├── oauth.ts      # 通用 OAuth 协议底层实现（PKCE, HTTP Server 回调）
-    │   ├── antigravity.ts # Google Antigravity OAuth 认证流程
-    │   ├── gemini.ts     # Gemini CLI OAuth 认证流程
-    │   ├── github.ts     # GitHub Copilot 认证流程
-    │   └── api-key.ts    # API Key 输入交互逻辑（Zhipu AI, Z.ai, Kimi Code）
+    │   ├── oauth.ts      # Generic OAuth protocol underlying implementation (PKCE, HTTP Server callback)
+    │   ├── antigravity.ts # Google Antigravity OAuth authentication flow
+    │   ├── gemini.ts     # Gemini CLI OAuth authentication flow
+    │   ├── github.ts     # GitHub Copilot authentication flow
+    │   └── api-key.ts    # API Key input interaction logic (Zhipu AI, Z.ai, Kimi Code)
     └── usage/
-        ├── google.ts     # Google Antigravity 用量 API 调用
-        ├── gemini.ts     # Gemini CLI 用量 API 调用
-        ├── github.ts     # GitHub Copilot 用量 API 调用
-        ├── zhipu.ts      # Zhipu AI / Z.ai 用量 API 调用│       ├── kimi.ts       # Kimi Code 用量 API 调用        └── claude.ts     # Claude Code 本地日志读取与计费计算
+        ├── google.ts     # Google Antigravity usage API calls
+        ├── gemini.ts     # Gemini CLI usage API calls
+        ├── github.ts     # GitHub Copilot usage API calls
+        ├── zhipu.ts      # Zhipu AI / Z.ai usage API calls
+        ├── kimi.ts       # Kimi Code usage API calls
+        └── claude.ts     # Claude Code local log reading and billing calculation
 ```
 
-**初始化顺序**（extension.ts）：
+**Initialization Order** (extension.ts):
 ```typescript
-useConfig()      // 1. 定义配置接口（accounts, autoRefresh）
-useAccounts()    // 2. 初始化账号 CRUD 封装
-useUsage()       // 3. 启动数据服务（defineService）
-useView()        // 4. 注册 Webview 视图（useWebviewView）
+useConfig()      // 1. Define configuration interface (accounts, autoRefresh)
+useAccounts()    // 2. Initialize Account CRUD wrapper
+useUsage()       // 3. Start data service (defineService)
+useView()        // 4. Register Webview view (useWebviewView)
 ```
 
-## 核心架构
+## Core Architecture
 
-**响应式 MVC + 单向数据流**，基于 `reactive-vscode` 框架：
+**Reactive MVC + Unidirectional Data Flow**, based on `reactive-vscode` framework:
 
 ```
 View (useView) → Model (config) → Controller (useUsage) → View (useView)
-用户操作 → 更新配置 → 自动刷新数据 → 重新渲染
+User operation → Update config → Auto-refresh data → Re-render
 ```
 
-### 框架 API
+### Framework APIs
 
-- **defineConfig**: 响应式配置管理（Model 层）
-- **defineService**: 服务容器，单例模式（Controller 层）
-- **useWebviewView**: Webview 视图管理（View 层）
-- **Vue Reactivity**: `ref`, `computed`, `watchEffect` 实现自动响应
-- **useCommand**: 命令注册（showAccountMenu, refresh）
+- **defineConfig**: Reactive configuration management (Model layer)
+- **defineService**: Service container, singleton pattern (Controller layer)
+- **useWebviewView**: Webview view management (View layer)
+- **Vue Reactivity**: `ref`, `computed`, `watchEffect` for automatic reactivity
+- **useCommand**: Command registration (showAccountMenu, refresh)
 
-### 调用约束
+### Call Constraints
 
-| 层级 | 模块 | 框架 API | 只能调用 | 职责 |
+| Layer | Module | Framework API | Can Only Call | Responsibilities |
 |---|---|---|---|---|
-| View | `useView` | useWebviewView | `useUsage`, `config`, `utils` | HTML 模板生成、QuickPick 菜单、写入配置 |
-| Controller | `useUsage` | defineService | `useAccounts`, `utils` | API 请求、watchEffect 自动刷新 |
-| Model | `useAccounts` | - | `useConfig` | computed 账号列表、CRUD 封装 |
-| Model | `useConfig` | defineConfig | 无 | 配置接口定义（providers, autoRefresh） |
-| Utils | `utils/` | - | 无 | OAuth 流程、PKCE、HTTP Server |
+| View | `useView` | useWebviewView | `useUsage`, `config`, `utils` | HTML template generation, QuickPick menus, write config |
+| Controller | `useUsage` | defineService | `useAccounts`, `utils` | API requests, watchEffect auto-refresh |
+| Model | `useAccounts` | - | `useConfig` | computed account lists, CRUD wrapper |
+| Model | `useConfig` | defineConfig | None | Configuration interface definition (providers, autoRefresh) |
+| Utils | `utils/` | - | None | OAuth flow, PKCE, HTTP Server |
 
-### 支持的 Provider
+### Supported Providers
 
-| ID | 名称 | 认证方式 | 存储内容 |
+| ID | Name | Authentication | Stored Content |
 |---|---|---|---|
-| `google-antigravity` | Google Antigravity | OAuth | refresh_token (端口 51121) |
-| `gemini-cli` | Gemini CLI | OAuth | accessToken + refresh_token (端口 51121) |
+| `google-antigravity` | Google Antigravity | OAuth | refresh_token (port 51121) |
+| `gemini-cli` | Gemini CLI | OAuth | accessToken + refresh_token (port 51121) |
 | `zhipu` | Zhipu AI | API Key | API Key |
 | `zai` | Z.ai | API Key | API Key |
 | `github-copilot` | GitHub Copilot | OAuth | VS Code authentication.getSession() |
-| `claude-code` | Claude Code | Local Log | 读取本地日志文件计算 5 小时窗口用量 |
-| `kimi-code` | Kimi Code | API Key | API Key (前缀 sk-kimi) |
+| `claude-code` | Claude Code | Local Log | Read local log files to calculate 5-hour window usage |
+| `kimi-code` | Kimi Code | API Key | API Key (prefix sk-kimi) |
 
-### 核心特性
+### Core Features
 
-- **自动响应式**: `config` 变化触发 `watchEffect` 重新计算，自动刷新数据
-- **智能排序**:
-  - **Provider 排序**: 面板中的 Provider 显示顺序严格遵循 `unifyQuotaMonitor.providers` 配置中的顺序
-  - **配额排序**: 按照使用百分比 (Used / Total) 升序排列，即剩余配额越多越靠前
-- **防抖优化**: `useUsage` 实现防抖，避免频繁配置变化导致过多 API 请求
-- **无状态工具函数**: 认证逻辑由无状态函数处理（`loginWithAntigravity`, `loginWithApiKey`, `loginWithGeminiCli`, `loginWithGitHub`）
-- **服务单例**: `defineService` 确保 `useUsage` 全局唯一实例
+- **Automatic Reactivity**: `config` changes trigger `watchEffect` recalculation, automatically refresh data
+- **Smart Sorting**:
+  - **Provider Ordering**: Provider display order in the panel strictly follows the order in `unifyQuotaMonitor.providers` configuration
+  - **Quota Sorting**: Sorted by usage percentage (Used / Total) in ascending order, meaning more remaining quota appears first
+- **Debounce Optimization**: `useUsage` implements debouncing to avoid excessive API requests from frequent config changes
+- **Stateless Utility Functions**: Authentication logic handled by stateless functions (`loginWithAntigravity`, `loginWithApiKey`, `loginWithGeminiCli`, `loginWithGitHub`)
+- **Service Singleton**: `defineService` ensures `useUsage` global unique instance
 
-### Provider 用量类型
+### Provider Usage Types
 
-| Provider | 用量类型 | 说明 |
+| Provider | Usage Type | Description |
 |---|---|---|
-| Google Antigravity | Percentage | 按模型显示剩余百分比 |
-| **Gemini CLI** | **Percentage** | API 返回 `remainingFraction` (0.0-1.0)，显示为已使用百分比 |
-| Zhipu AI / Z.ai | Token / Request | Token 限额 + MCP 配额 |
-| GitHub Copilot | Request | Premium Request 限额 |
-| Claude Code | Cost / Time | 5小时窗口费用估算 |
-| Kimi Code | Percentage | 本周用量百分比 + 频限明细百分比（Rate Limit Details） |
+| Google Antigravity | Percentage | Display remaining percentage by model |
+| **Gemini CLI** | **Percentage** | API returns `remainingFraction` (0.0-1.0), displayed as used percentage |
+| Zhipu AI / Z.ai | Token / Request | Token limits + MCP quotas |
+| GitHub Copilot | Request | Premium Request limits |
+| Claude Code | Cost / Time | 5-hour window cost estimation |
+| Kimi Code | Percentage | Weekly usage percentage + rate limit details percentage |
 
-**Gemini CLI 特殊处理**:
-- API 返回 `buckets[]` 数组，每个 bucket 包含 `modelId`, `remainingFraction`, `resetTime`
-- `remainingFraction` 是**剩余比例**（0.0-1.0），不是具体请求次数
-- 显示为已使用百分比: `(1 - remainingFraction) * 100`
-- 支持 20+ 模型映射（`gemini-3-pro-preview` → "Gemini 3 Pro"）
+**Gemini CLI Special Handling**:
+- API returns `buckets[]` array, each bucket contains `modelId`, `remainingFraction`, `resetTime`
+- `remainingFraction` is **remaining ratio** (0.0-1.0), not specific request count
+- Displayed as used percentage: `(1 - remainingFraction) * 100`
+- Supports 20+ model mappings (`gemini-3-pro-preview` → "Gemini 3 Pro")
 
-**Kimi Code 特殊处理**:
-- 所有用量项（Weekly Usage 和 Rate Limit Details）均显示为百分比
-- API 返回的 `used` 和 `limit` 字段用于计算百分比: `(used / limit) * 100`
-- Weekly Usage 始终显示在第一位，Rate Limit Details 按使用百分比升序排列
-- 支持多个时间窗口的频限明细，统一显示为 "Rate Limit Details"
+**Kimi Code Special Handling**:
+- All usage items (Weekly Usage and Rate Limit Details) are displayed as percentages
+- API returns `used` and `limit` fields for percentage calculation: `(used / limit) * 100`
+- Weekly Usage always displayed first, Rate Limit Details sorted by usage percentage in ascending order
+- Supports multiple time window rate limit details, uniformly displayed as "Rate Limit Details"
 
-### 数据流示例
+### Data Flow Example
 
 ```typescript
-// 用户添加账号
+// User adds account
 view.showAccountMenu() → loginWithGoogle() → useAccounts.addAccount() → config.update('providers', [...])
 
-// 自动响应
-config.providers 变化 → watchEffect 触发 → useUsage.fetchAllUsage() → providers 更新 → html 重新计算
+// Auto-reactivity
+config.providers changes → watchEffect triggers → useUsage.fetchAllUsage() → providers update → html recalculates
 
-// 自动刷新
-setInterval(intervalMs) → usage.refresh() → 重新获取所有账号用量
+// Auto-refresh
+setInterval(intervalMs) → usage.refresh() → Refetch all account usage
 ```
 
-## 构建系统
+## Build System
 
-项目使用 **Vite** 进行构建和开发，配置位于 `vite.config.ts`。
+The project uses **Vite** for building and development, configuration located in `vite.config.ts`.
 
-- **构建工具**: Vite (Library Mode)
-- **输出格式**: CommonJS (`dist/extension.cjs`)
-- **运行环境**: Node.js 22 (VS Code 扩展宿主环境)
-- **开发模式**: `npm run dev` 使用 Vite Watch 模式实时编译
+- **Build Tool**: Vite (Library Mode)
+- **Output Format**: CommonJS (`dist/extension.cjs`)
+- **Runtime Environment**: Node.js 22 (VS Code extension host environment)
+- **Development Mode**: `npm run dev` uses Vite Watch mode for real-time compilation
 
-## 详细文档
+## Detailed Documentation
 
-- 📐 [架构设计](./docs/architecture.md) - MVC 模式、数据流、响应式系统详解
-- 🎨 [UI/UX 设计](./docs/ui-ux.md) - 完整样式规范、布局系统、交互设计
-- 🔐 [认证机制](./docs/authentication.md) - OAuth 流程、Token 管理、存储安全
-- 📜 [设计历史](./docs/design-history.md) - UI/UX 演进记录和变更说明
+- 📐 [Architecture Design](./docs/architecture.md) - MVC pattern, data flow, reactivity system details
+- 🎨 [UI/UX Design](./docs/ui-ux.md) - Complete style guidelines, layout system, interaction design
+- 🔐 [Authentication Mechanism](./docs/authentication.md) - OAuth flow, Token management, storage security
+- 📜 [Design History](./docs/design-history.md) - UI/UX evolution records and change notes
 
-## 代码规则
+## Code Rules
 
-- **单向数据流**: 严禁下层模块调用上层模块（如 `useUsage` 不可调用 `useView`）
-- **工具函数分离**: 纯逻辑、无状态的代码放入 `src/utils/`
-- **WatchEffect**: 优先使用 `watchEffect` 处理响应式依赖，避免配置 Proxy 对象的深度遍历
+- **Unidirectional Data Flow**: Strictly prohibit lower-layer modules from calling upper-layer modules (e.g., `useUsage` cannot call `useView`)
+- **Utility Function Separation**: Pure logic, stateless code should be placed in `src/utils/`
+- **WatchEffect**: Prefer using `watchEffect` for reactive dependencies to avoid deep traversal of configuration Proxy objects
 
-## 维护指南
+## Maintenance Guidelines
 
-- **配置默认值同步**: 修改配置的默认值时，必须同时更新 `package.json` 中的 `configuration` 默认值和 `src/composables/use-config.ts` 中的常量定义，确保两者一致。
+- **Configuration Default Value Synchronization**: When modifying configuration default values, must simultaneously update the default values in `package.json`'s `configuration` section and constant definitions in `src/composables/use-config.ts` to ensure consistency.
 
 ## Agent Skills
 
-本项目包含用于辅助开发的 Agent Skills，位于 `.claude/skills/` 目录：
+This project includes Agent Skills for assisting development, located in `.claude/skills/` directory:
 
-| Skill | 用途 |
-|-------|------|
-| `vscode-ext-config-sync` | 指导 VS Code 扩展配置变更时的文件联动同步，包括 Provider ID、命令、视图、配置项等变更 |
+| Skill | Purpose |
+|-------|---------|
+| `vscode-ext-config-sync` | Guides file linkage synchronization when modifying VS Code extension configurations, including Provider ID, commands, views, configuration items, etc. |
 
-使用方式：当需要修改配置相关内容时，Agent 会自动应用此 Skill 的联动规则，确保所有相关文件同步更新。
+Usage: When modifying configuration-related content, Agent will automatically apply this Skill's linkage rules to ensure all related files are synchronized.
 
-### 支持的命令
+### Supported Commands
 
-| 命令 ID | 标题 | 图标 | 说明 |
+| Command ID | Title | Icon | Description |
 |---------|------|------|------|
-| `unifyQuotaMonitor.refresh` | Refresh / 刷新 | $(refresh) | 刷新配额数据 |
-| `unifyQuotaMonitor.settings` | Settings / 设置 | $(gear) | 打开账号设置菜单 |
+| `unifyQuotaMonitor.refresh` | Refresh / 刷新 | $(refresh) | Refresh quota data |
+| `unifyQuotaMonitor.settings` | Settings / 设置 | $(gear) | Open account settings menu |

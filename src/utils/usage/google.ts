@@ -74,10 +74,19 @@ export async function fetchGoogleAntigravityUsage(
       lastUpdated: new Date().toISOString()
     }
   } catch (e: any) {
+    const message = e.message || String(e)
+    if (message.includes('fetch failed')) {
+      return {
+        success: false,
+        usage: [],
+        error: ERROR_MESSAGES.API.NETWORK_ERROR(message),
+        lastUpdated: new Date().toISOString()
+      }
+    }
     return {
       success: false,
       usage: [],
-      error: ERROR_MESSAGES.API.UNKNOWN(e.message || e),
+      error: ERROR_MESSAGES.API.UNKNOWN(message),
       lastUpdated: new Date().toISOString()
     }
   }

@@ -165,7 +165,7 @@ export const useUsage = defineService(() => {
       alias: account.alias,
       credential: account.credential,
       usage: [],
-      error: errorMessage || ERROR_MESSAGES.GENERIC.FETCH_FAILED,
+      error: errorMessage || ERROR_MESSAGES.API.UNKNOWN('Failed to fetch usage'),
       lastUpdated: new Date().toISOString()
     }
   }

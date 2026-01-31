@@ -1,93 +1,93 @@
-# UI/UX 设计规范
+# UI/UX Design Guidelines
 
-## 设计参考
+## Design Reference
 
-UI 样式参考 GitHub Copilot Status Bar 的设计规范，确保视觉一致性。
+UI styles follow GitHub Copilot Status Bar design specifications to ensure visual consistency.
 
-## 样式规范
+## Style Guidelines
 
-### 进度条样式
+### Progress Bar Styles
 
-- **高度**: `4px`
-- **圆角**: `4px`
-- **边框**: `1px solid var(--vscode-gauge-border)`
-- **背景色**: `var(--vscode-gauge-background)` (30% 透明度)
-- **填充色**:
-  - 正常: `var(--vscode-gauge-foreground)`
-  - 警告 (≥75%): `var(--vscode-gauge-warningForeground)`
-  - 错误 (≥90%): `var(--vscode-gauge-errorForeground)`
-- **上下边距**: `2px 0`
+- **Height**: `4px`
+- **Border Radius**: `4px`
+- **Border**: `1px solid var(--vscode-gauge-border)`
+- **Background Color**: `var(--vscode-gauge-background)` (30% opacity)
+- **Fill Colors**:
+  - Normal: `var(--vscode-gauge-foreground)`
+  - Warning (≥75%): `var(--vscode-gauge-warningForeground)`
+  - Error (≥90%): `var(--vscode-gauge-errorForeground)`
+- **Vertical Margins**: `2px 0`
 
-### 文字样式
+### Text Styles
 
-- **Provider 标题**: 字重 `600`，颜色 `var(--vscode-descriptionForeground)`，下边距 `0.8em`
-- **用量数值**: 字体大小 `0.85em`，颜色 `var(--vscode-descriptionForeground)`，透明度 `0.8`
-- **Reset 时间**: 字体大小 `0.85em`，颜色 `var(--vscode-descriptionForeground)`，透明度 `0.8`，居左对齐
+- **Provider Title**: Font weight `600`, color `var(--vscode-descriptionForeground)`, bottom margin `0.8em`
+- **Usage Values**: Font size `0.85em`, color `var(--vscode-descriptionForeground)`, opacity `0.8`
+- **Reset Time**: Font size `0.85em`, color `var(--vscode-descriptionForeground)`, opacity `0.8`, left-aligned
 
-### 布局与间距
+### Layout & Spacing
 
-- **Content 内边距**: `0.5em 1em` (上下 0.5em，左右 1em)
-- **Provider Section**: 上下外边距 `0.6em`，下内边距 `0.8em`，底部分割线 `1px solid var(--vscode-panel-border)`
-- **Account Block**: 上外边距 `1.2em`，下外边距 `0.6em` (紧跟 Provider Header 时为 `0.8em`)
-- **Usage Grid**: 列宽 `minmax(12em, 1fr)` (使用相对单位)，行间距 `0.2em`，列间距 `1em`
-- **Usage Item**: 无内边距 (`padding: 0`)
+- **Content Padding**: `0.5em 1em` (top/bottom 0.5em, left/right 1em)
+- **Provider Section**: Top/bottom margin `0.6em`, bottom padding `0.8em`, bottom border `1px solid var(--vscode-panel-border)`
+- **Account Block**: Top margin `1.2em`, bottom margin `0.6em` (when following Provider Header: `0.8em`)
+- **Usage Grid**: Column width `minmax(12em, 1fr)` (using relative units), row gap `0.2em`, column gap `1em`
+- **Usage Item**: No padding (`padding: 0`)
 
-### 容器样式
+### Container Styles
 
-- 移除账号块的背景色和边框，使用透明背景（与 Copilot 一致）
-- 无额外圆角和装饰，保持简洁风格
+- Remove background color and border from account blocks, use transparent background (consistent with Copilot)
+- No extra border radius or decorations, keep it clean and simple
 
-### 响应式设计
+### Responsive Design
 
-- 使用相对单位 (`em`, `%`) 而非绝对像素 (`px`)，确保在不同字体大小下的一致性
-- Grid 布局自动适应容器宽度
+- Use relative units (`em`, `%`) instead of absolute pixels (`px`) to ensure consistency across different font sizes
+- Grid layout automatically adapts to container width
 
-### 主题适配
+### Theme Adaptation
 
-所有颜色使用 VS Code 主题变量，自动适配深色/浅色/高对比度主题。
+All colors use VS Code theme variables, automatically adapting to dark/light/high contrast themes.
 
-## 数据处理与展示
+## Data Processing & Display
 
-### Reset Time 显示规则
+### Reset Time Display Rules
 
-- 剩余时间 > 1 小时：仅显示时分 (e.g. `2h 30m`)
-- 剩余时间 < 1 小时：显示分秒 (e.g. `59m 30s`)
-- 前端定时器 (`setInterval`) 每秒实时更新倒计时
+- Remaining time > 1 hour: Show hours and minutes only (e.g. `2h 30m`)
+- Remaining time < 1 hour: Show minutes and seconds (e.g. `59m 30s`)
+- Frontend timer (`setInterval`) updates countdown every second
 
-### 排序规则
+### Sorting Rules
 
-- **Provider 排序**: 面板中的 Provider 显示顺序严格遵循 `unifyQuotaMonitor.providers` 配置中的顺序。
-- **配额排序**: 按照使用百分比 (Used / Total) **升序**排列，即剩余配额越多越靠前。
-- Z.ai/Zhipu: Token Limit 类型的配额始终排在 Request Limit 之前，组内再按使用百分比升序排列。
-- Request 类型的配额：不显示单位后缀 ("requests")
+- **Provider Ordering**: Provider display order in the panel strictly follows the order defined in `unifyQuotaMonitor.providers` configuration.
+- **Quota Sorting**: Sorted by usage percentage (Used / Total) in **ascending** order, meaning more remaining quota appears first.
+- Z.ai/Zhipu: Token Limit type quotas always appear before Request Limit, then sorted by usage percentage in ascending order within each group.
+- Request type quotas: Do not display unit suffix ("requests")
 
-## UI 交互
+## UI Interactions
 
-### 侧边栏 Panel
+### Sidebar Panel
 
-- 使用 Webview View，由 `use-view.ts` 管理
-- **无闪烁刷新**: 数据刷新时旧数据保留，直到新数据就绪
+- Uses Webview View, managed by `use-view.ts`
+- **Flicker-free Refresh**: Old data is retained during refresh until new data is ready
 
-### 账号管理 QuickPick
+### Account Management QuickPick
 
-- **Label**: 显示 Provider 名称 (e.g., "Google Antigravity")
-- **Description**: 显示账号名称或 ID
+- **Label**: Display Provider name (e.g., "Google Antigravity")
+- **Description**: Display account name or ID
 
-### 认证与存储
+### Authentication & Storage
 
-- 数据持久化在 `unifyQuotaMonitor.accounts` 全局配置中
-- `ProviderDefinition` 不再包含 `icon` 和 `helpUrl` (已移除未使用的字段)
-- **UI 错误提示**: `Account` 支持 `error` 字段，当 API 调用失败时（如 Token 失效或网络错误），在 UI 上直接显示红色错误详情
+- Data is persisted in `unifyQuotaMonitor.accounts` global configuration
+- `ProviderDefinition` no longer contains `icon` and `helpUrl` (removed unused fields)
+- **UI Error Messages**: `Account` supports `error` field, when API calls fail (e.g., Token expiration or network errors), red error details are displayed directly in the UI
 
-## 设计原则
+## Design Principles
 
-- **简洁**: 移除不必要的装饰和背景
-- **主题感知**: 使用 VS Code 主题变量，自动适配
-- **响应式**: 使用相对单位，确保不同字体大小下的一致性
-- **与 Copilot 一致**: 参考 GitHub Copilot Status Bar 的设计规范
+- **Clean**: Remove unnecessary decorations and backgrounds
+- **Theme-aware**: Use VS Code theme variables for automatic adaptation
+- **Responsive**: Use relative units to ensure consistency across different font sizes
+- **Consistent with Copilot**: Follow GitHub Copilot Status Bar design specifications
 
-### 相关文档
+### Related Documentation
 
-- [架构设计](./architecture.md) - MVC 架构和数据流
-- [认证机制](./authentication.md) - OAuth 流程
-- [设计历史](./design-history.md) - 样式演进记录
+- [Architecture Design](./architecture.md) - MVC architecture and data flow
+- [Authentication Mechanism](./authentication.md) - OAuth flow
+- [Design History](./design-history.md) - Style evolution records

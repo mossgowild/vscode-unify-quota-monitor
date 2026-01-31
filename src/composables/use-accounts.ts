@@ -59,7 +59,11 @@ export function useAccounts() {
       providers.push(pConfig)
     }
 
-    pConfig.accounts.push({ credential, name: alias })
+    const account: { credential: string, name?: string } = { credential }
+    if (alias && alias.trim() !== '') {
+      account.name = alias.trim()
+    }
+    pConfig.accounts.push(account)
     await config.update('providers', providers, ConfigurationTarget.Global)
   }
 
@@ -90,7 +94,11 @@ export function useAccounts() {
     const providers = [...(config.providers || [])]
     
     if (providers[pIndex] && providers[pIndex].accounts[aIndex]) {
-      providers[pIndex].accounts[aIndex].name = newName
+      if (newName && newName.trim() !== '') {
+        providers[pIndex].accounts[aIndex].name = newName.trim()
+      } else {
+        delete providers[pIndex].accounts[aIndex].name
+      }
       await config.update('providers', providers, ConfigurationTarget.Global)
     }
   }
