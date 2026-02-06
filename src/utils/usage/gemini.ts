@@ -1,6 +1,7 @@
 import type { FetchUsageResult, UsageCategory } from '../../types'
 import { refreshGeminiCliToken } from '../auth/gemini'
 import { ERROR_MESSAGES } from '../../constants'
+import { formatModelName } from './format-model-name'
 
 interface GeminiCredential {
   accessToken?: string
@@ -20,36 +21,6 @@ interface QuotaBucket {
 interface QuotaResponse {
   buckets?: QuotaBucket[]
 }
-
-const modelMap = new Map([
-  // Gemini 3 series (Preview)
-  ['gemini-3-pro-preview', 'Gemini 3 Pro'],
-  ['gemini-3-pro', 'Gemini 3 Pro'],
-  ['gemini-3-flash-preview', 'Gemini 3 Flash'],
-  ['gemini-3-flash', 'Gemini 3 Flash'],
-  ['gemini-3-image', 'Gemini 3 Image'],
-  // Gemini 2.5 series
-  ['gemini-2.5-pro', 'Gemini 2.5 Pro'],
-  ['gemini-2.5-pro-thinking', 'Gemini 2.5 Pro Thinking'],
-  ['gemini-2.5-flash', 'Gemini 2.5 Flash'],
-  ['gemini-2.5-flash-lite', 'Gemini 2.5 Flash Lite'],
-  // Gemini 2.0 series
-  ['gemini-2.0-flash', 'Gemini 2.0 Flash'],
-  ['gemini-2.0-flash-thinking', 'Gemini 2.0 Flash Thinking'],
-  ['gemini-2.0-flash-lite', 'Gemini 2.0 Flash Lite'],
-  ['gemini-2.0-pro', 'Gemini 2.0 Pro'],
-  // Gemini 1.5 series
-  ['gemini-1.5-pro', 'Gemini 1.5 Pro'],
-  ['gemini-1.5-flash', 'Gemini 1.5 Flash'],
-  // Legacy models
-  ['gemini-pro', 'Gemini Pro'],
-  ['gemini-ultra', 'Gemini Ultra'],
-  // Experimental/Preview models
-  ['gemini-exp-1206', 'Gemini Experimental'],
-  ['gemini-2.0-flash-exp', 'Gemini 2.0 Flash Exp'],
-  // Generic fallbacks
-  ['gemini', 'Gemini']
-])
 
 export async function fetchGeminiCliUsage(
   credentialString: string,
@@ -173,7 +144,7 @@ export async function fetchGeminiCliUsage(
   // Map buckets to usage categories
   const usage: UsageCategory[] = []
   for (const bucket of quotaResult.buckets) {
-    const label = modelMap.get(bucket.modelId) || bucket.modelId
+    const label = formatModelName(bucket.modelId)
     usage.push({
       name: label,
       limitType: 'request',

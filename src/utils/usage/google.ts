@@ -2,13 +2,14 @@
 import type { FetchUsageResult, UsageCategory } from '../../types'
 import { refreshAntigravityToken } from '../auth/antigravity'
 import { ERROR_MESSAGES } from '../../constants'
+import { formatModelName } from './format-model-name'
 
-const modelMap = new Map([
-  ['claude-opus-4-5-thinking', 'Claude Opus 4.5'],
-  ['gemini-3-pro-high', 'Gemini 3 Pro'],
-  ['gemini-3-flash', 'Gemini 3 Flash'],
-  ['gemini-3-pro-image', 'Gemini 3 Image']
-])
+const modelIds = [
+  'claude-opus-4-5-thinking',
+  'gemini-3-pro-high',
+  'gemini-3-flash',
+  'gemini-3-pro-image'
+]
 
 export async function fetchGoogleAntigravityUsage(
   refreshToken: string
@@ -44,12 +45,12 @@ export async function fetchGoogleAntigravityUsage(
     const data = (await quotaResponse.json()) as any
     const usage: UsageCategory[] = []
 
-    for (const [key, label] of modelMap.entries()) {
-      const m = data.models?.[key]
+    for (const modelId of modelIds) {
+      const m = data.models?.[modelId]
       if (m?.quotaInfo) {
         const remainingFraction = m.quotaInfo.remainingFraction ?? 0
         usage.push({
-          name: label,
+          name: formatModelName(modelId),
           limitType: 'request',
           used: Math.round((1 - remainingFraction) * 100),
           total: 100,
