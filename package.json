@@ -2,7 +2,7 @@
   "publisher": "mossgowild",
   "name": "unify-quota-monitor",
   "displayName": "Unify Quota Monitor",
-  "description": "Monitor provider usage quotas in a beautiful panel view. Supports Google Antigravity, GitHub Copilot, Gemini CLI, Claude Code, Zhipu AI, Z.ai, and Kimi Code.",
+  "description": "Monitor provider usage quotas in a beautiful panel view. Supports Google Antigravity, GitHub Copilot, Gemini CLI, Zhipu AI, Z.AI, and Kimi Code.",
   "type": "module",
   "version": "0.0.1",
   "private": true,
@@ -38,7 +38,7 @@
             "properties": {
               "provider": {
                 "type": "string",
-                "markdownDescription": "Provider type: `google-antigravity` (Google Antigravity), `github-copilot` (GitHub Copilot), `gemini-cli` (Gemini CLI), `zhipu` (Zhipu AI), `zai` (Z.ai), `kimi-code` (Kimi Code)",
+                "markdownDescription": "Provider type: `google-antigravity` (Google Antigravity), `github-copilot` (GitHub Copilot), `gemini-cli` (Gemini CLI), `zhipu` (Zhipu AI), `zai` (Z.AI), `kimi-code` (Kimi Code)",
                 "enum": [
                   "google-antigravity",
                   "github-copilot",
@@ -52,7 +52,7 @@
                   "GitHub Copilot",
                   "Gemini CLI",
                   "Zhipu AI (智谱 AI)",
-                  "Z.ai",
+                  "Z.AI",
                   "Kimi Code"
                 ]
               },
@@ -68,7 +68,7 @@
                   "properties": {
                     "credential": {
                       "type": "string",
-                      "markdownDescription": "Authentication credentials. OAuth tokens for OpenAI/Google/Gemini CLI/GitHub, or API keys for Zhipu AI/Z.ai"
+                      "markdownDescription": "Authentication credentials. OAuth tokens for OpenAI/Google/Gemini CLI/GitHub, or API keys for Zhipu AI/Z.AI"
                     },
                     "name": {
                       "type": "string",

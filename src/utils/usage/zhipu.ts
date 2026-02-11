@@ -45,20 +45,50 @@ export async function fetchZhipuUsage(
           }
         }
 
+        // Extract used/total values with fallbacks for different API response formats
+        let used: number
+        let total: number
+        let percentageOnly = false
+        
+        if (l.type === 'TOKENS_LIMIT') {
+          // TOKENS_LIMIT displays as percentage
+          percentageOnly = true
+          if (l.percentage !== undefined) {
+            used = Number(l.percentage) || 0
+            total = 100
+          } else {
+            used = 0
+            total = 100
+          }
+        } else {
+          // TIME_LIMIT and other types display as actual numbers
+          used = Number(l.currentValue) || 0
+          total = Number(l.usage) || 0
+        }
+
         usage.push({
-          name: l.type === 'TOKENS_LIMIT' ? 'Token Limit' : 'MCP Quota',
-          limitType: l.type === 'TOKENS_LIMIT' ? 'token' : 'request',
-          used: l.currentValue,
-          total: l.usage,
+          name: l.type === 'TOKENS_LIMIT' ? 'Token Limit' : 
+                l.type === 'TIME_LIMIT' ? 'Time Limit' : 
+                'MCP Quota',
+          limitType: 'request',
+          used,
+          total,
+          percentageOnly,
           resetTime: resetDate ? resetDate.toISOString() : undefined
         })
       }
 
-      // Sort: Token Limit first, then by usage percentage (ascending)
+      // Sort: Token Limit first, then Time Limit, then by usage percentage (ascending)
       usage.sort((a, b) => {
-        if (a.limitType === 'token' && b.limitType !== 'token') return -1
-        if (a.limitType !== 'token' && b.limitType === 'token') return 1
-
+        // Token Limit comes first
+        if (a.name === 'Token Limit' && b.name !== 'Token Limit') return -1
+        if (a.name !== 'Token Limit' && b.name === 'Token Limit') return 1
+        
+        // Time Limit comes second
+        if (a.name === 'Time Limit' && b.name !== 'Time Limit') return -1
+        if (a.name !== 'Time Limit' && b.name === 'Time Limit') return 1
+        
+        // Then sort by usage percentage (ascending - more remaining first)
         const pA = a.total > 0 ? (a.used / a.total) : 0
         const pB = b.total > 0 ? (b.used / b.total) : 0
         return pA - pB

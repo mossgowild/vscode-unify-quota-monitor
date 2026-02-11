@@ -32,7 +32,7 @@ That's it! You can now monitor your quota usage in real-time.
 | Provider | Quota Types | Authentication |
 |----------|-------------|----------------|
 | **Zhipu AI** | Token limits, MCP quotas | API Key |
-| **Z.ai** | Token limits, MCP quotas | API Key |
+| **Z.AI** | Token limits, MCP quotas | API Key |
 | **Google Antigravity** | Token usage, reset countdown | Google OAuth |
 | **Gemini CLI** | Usage percentage, reset countdown | Google OAuth |
 | **GitHub Copilot** | Premium requests, reset countdown | GitHub OAuth |
@@ -73,7 +73,7 @@ That's it! You can now monitor your quota usage in real-time.
 1. Click the **Quota** icon in the sidebar
 2. Click the **$(plus)** button in the top-right corner
 3. Select a Provider:
-   - **Zhipu AI / Z.ai**: Enter API Key
+   - **Zhipu AI / Z.AI**: Enter API Key
    - **Google Antigravity / Gemini CLI / GitHub Copilot**: Authenticate via browser OAuth
    - **Claude Code**: Automatically detects local installation
 4. (Optional) Set an account alias

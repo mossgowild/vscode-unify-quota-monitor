@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-`unify-quota-monitor` is a VS Code extension that uses the `reactive-vscode` framework to display real-time usage quotas for multiple providers (Google Antigravity, GitHub Copilot, Gemini CLI, Claude Code, Zhipu AI, Z.ai, Kimi Code) in a sidebar Panel.
+`unify-quota-monitor` is a VS Code extension that uses the `reactive-vscode` framework to display real-time usage quotas for multiple providers (Google Antigravity, GitHub Copilot, Gemini CLI, Zhipu AI, Z.AI, Kimi Code) in a sidebar Panel.
 
 ## Quick Start
 
@@ -42,12 +42,12 @@ src/
     │   ├── antigravity.ts # Google Antigravity OAuth authentication flow
     │   ├── gemini.ts     # Gemini CLI OAuth authentication flow
     │   ├── github.ts     # GitHub Copilot authentication flow
-    │   └── api-key.ts    # API Key input interaction logic (Zhipu AI, Z.ai, Kimi Code)
+    │   └── api-key.ts    # API Key input interaction logic (Zhipu AI, Z.AI, Kimi Code)
     └── usage/
     ├── google.ts     # Google Antigravity usage API calls
     ├── gemini.ts     # Gemini CLI usage API calls
     ├── github.ts     # GitHub Copilot usage API calls
-    ├── zhipu.ts      # Zhipu AI / Z.ai usage API calls
+    ├── zhipu.ts      # Zhipu AI / Z.AI usage API calls
     └── kimi.ts       # Kimi Code usage API calls
 ```
 
@@ -93,7 +93,7 @@ User operation → Update config → Auto-refresh data → Re-render
 | `google-antigravity` | Google Antigravity | OAuth | refresh_token (port 51121) |
 | `gemini-cli` | Gemini CLI | OAuth | accessToken + refresh_token (port 51121) |
 | `zhipu` | Zhipu AI | API Key | API Key |
-| `zai` | Z.ai | API Key | API Key |
+| `zai` | Z.AI | API Key | API Key |
 | `github-copilot` | GitHub Copilot | OAuth | VS Code authentication.getSession() |
 | `kimi-code` | Kimi Code | API Key | API Key (prefix sk-kimi) |
 
@@ -113,7 +113,7 @@ User operation → Update config → Auto-refresh data → Re-render
 |---|---|---|
 | Google Antigravity | Percentage | Display remaining percentage by model |
 | **Gemini CLI** | **Percentage** | API returns `remainingFraction` (0.0-1.0), displayed as used percentage |
-| Zhipu AI / Z.ai | Token / Request | Token limits + MCP quotas |
+| Zhipu AI / Z.AI | Token / Request | Token limits + MCP quotas |
 | GitHub Copilot | Request | Premium Request limits |
 | Kimi Code | Percentage | Weekly usage percentage + rate limit details percentage |
 

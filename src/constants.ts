@@ -28,7 +28,7 @@ export const ERROR_MESSAGES = {
 /* eslint-disable @typescript-eslint/naming-convention */
 export const PROVIDERS = {
   ZHIPU: { ID: 'zhipu', NAME: 'Zhipu AI' },
-  ZAI: { ID: 'zai', NAME: 'Z.ai' },
+  ZAI: { ID: 'zai', NAME: 'Z.AI' },
   ANTIGRAVITY: { ID: 'google-antigravity', NAME: 'Google Antigravity' },
   GITHUB: { ID: 'github-copilot', NAME: 'GitHub Copilot' },
   GEMINI: { ID: 'gemini-cli', NAME: 'Gemini CLI' },
