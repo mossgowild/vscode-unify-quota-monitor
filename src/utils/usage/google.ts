@@ -4,13 +4,6 @@ import { refreshAntigravityToken } from '../auth/antigravity'
 import { ERROR_MESSAGES } from '../../constants'
 import { formatModelName } from './format-model-name'
 
-const modelIds = [
-  'claude-opus-4-5-thinking',
-  'gemini-3-pro-high',
-  'gemini-3-flash',
-  'gemini-3-pro-image'
-]
-
 export async function fetchGoogleAntigravityUsage(
   refreshToken: string
 ): Promise<FetchUsageResult> {
@@ -45,8 +38,10 @@ export async function fetchGoogleAntigravityUsage(
     const data = (await quotaResponse.json()) as any
     const usage: UsageCategory[] = []
 
-    for (const modelId of modelIds) {
-      const m = data.models?.[modelId]
+    // 动态遍历 API 返回的所有模型
+    const models = data.models || {}
+    for (const [modelId, modelData] of Object.entries(models)) {
+      const m = modelData as any
       if (m?.quotaInfo) {
         const remainingFraction = m.quotaInfo.remainingFraction ?? 0
         usage.push({
