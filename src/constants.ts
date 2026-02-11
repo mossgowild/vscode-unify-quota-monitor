@@ -19,10 +19,6 @@ export const ERROR_MESSAGES = {
     API_KEY_INVALID: (prefix: string) => `Invalid API Key format, should start with ${prefix}`,
     NO_GITHUB_TOKEN: 'No GitHub token. Please re-login.',
   },
-  CLAUDE: {
-    NOT_INSTALLED: 'Claude Code not installed. Run `npm install -g @anthropic-ai/claude-code`',
-    NO_USAGE: 'No usage data yet. Start using Claude Code to see quota.',
-  },
   GEMINI: {
     PROJECT_LOAD_FAILED: 'Failed to load project',
     QUOTA_FETCH_FAILED: 'Failed to fetch quota',
@@ -36,7 +32,6 @@ export const PROVIDERS = {
   ANTIGRAVITY: { ID: 'google-antigravity', NAME: 'Google Antigravity' },
   GITHUB: { ID: 'github-copilot', NAME: 'GitHub Copilot' },
   GEMINI: { ID: 'gemini-cli', NAME: 'Gemini CLI' },
-  CLAUDE: { ID: 'claude-code', NAME: 'Claude Code' },
   KIMI: { ID: 'kimi-code', NAME: 'Kimi Code' },
 } as const satisfies Record<string, { ID: ProviderId; NAME: string }>;
 

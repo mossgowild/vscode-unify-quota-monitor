@@ -8,7 +8,6 @@ import { fetchGitHubCopilotUsage } from '../utils/usage/github'
 import { fetchZhipuUsage } from '../utils/usage/zhipu'
 import { fetchGoogleAntigravityUsage } from '../utils/usage/google'
 import { fetchGeminiCliUsage } from '../utils/usage/gemini'
-import { getClaudeCodeUsage } from '../utils/usage/claude'
 import { fetchKimiCodeUsage } from '../utils/usage/kimi'
 import { ERROR_MESSAGES, UI_MESSAGES } from '../constants'
 
@@ -73,44 +72,6 @@ export const useUsage = defineService(() => {
       credential: account.credential,
       usage: result.usage,
       lastUpdated: result.lastUpdated
-    }
-  }
-
-  async function fetchClaudeCodeUsage(
-    account: Pick<Account, 'id' | 'alias' | 'credential'>
-  ): Promise<Account | null> {
-    const result = await getClaudeCodeUsage()
-
-    if (!result.isInstalled) {
-      return createErrorAccount(account, result.error || ERROR_MESSAGES.CLAUDE.NOT_INSTALLED)
-    }
-
-    const models: UsageCategory[] = [{
-      name: '5-Hour Window',
-      limitType: 'credit',
-      used: Math.round(result.costUSD * 100) / 100,
-      total: 5.0,
-      percentageOnly: false,
-      resetTime: result.resetTime?.toISOString()
-    }]
-
-    // If no usage data yet, show info but not as error
-    if (!result.hasUsageData) {
-      return {
-        id: account.id,
-        alias: account.alias,
-        credential: account.credential,
-        usage: models,
-        lastUpdated: new Date().toISOString()
-      }
-    }
-
-    return {
-      id: account.id,
-      alias: account.alias,
-      credential: account.credential,
-      usage: models,
-      lastUpdated: new Date().toISOString()
     }
   }
 
@@ -179,8 +140,6 @@ export const useUsage = defineService(() => {
         return fetchGitHubUsage(account)
       } else if (providerId === 'gemini-cli') {
         return fetchGeminiCliUsageWrapper(account)
-      } else if (providerId === 'claude-code') {
-        return fetchClaudeCodeUsage(account)
       } else if (providerId === 'kimi-code') {
         return fetchKimiCodeUsageWrapper(account)
       } else {

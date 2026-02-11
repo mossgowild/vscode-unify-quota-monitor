@@ -44,12 +44,11 @@ src/
     │   ├── github.ts     # GitHub Copilot authentication flow
     │   └── api-key.ts    # API Key input interaction logic (Zhipu AI, Z.ai, Kimi Code)
     └── usage/
-        ├── google.ts     # Google Antigravity usage API calls
-        ├── gemini.ts     # Gemini CLI usage API calls
-        ├── github.ts     # GitHub Copilot usage API calls
-        ├── zhipu.ts      # Zhipu AI / Z.ai usage API calls
-        ├── kimi.ts       # Kimi Code usage API calls
-        └── claude.ts     # Claude Code local log reading and billing calculation
+    ├── google.ts     # Google Antigravity usage API calls
+    ├── gemini.ts     # Gemini CLI usage API calls
+    ├── github.ts     # GitHub Copilot usage API calls
+    ├── zhipu.ts      # Zhipu AI / Z.ai usage API calls
+    └── kimi.ts       # Kimi Code usage API calls
 ```
 
 **Initialization Order** (extension.ts):
@@ -96,7 +95,6 @@ User operation → Update config → Auto-refresh data → Re-render
 | `zhipu` | Zhipu AI | API Key | API Key |
 | `zai` | Z.ai | API Key | API Key |
 | `github-copilot` | GitHub Copilot | OAuth | VS Code authentication.getSession() |
-| `claude-code` | Claude Code | Local Log | Read local log files to calculate 5-hour window usage |
 | `kimi-code` | Kimi Code | API Key | API Key (prefix sk-kimi) |
 
 ### Core Features
@@ -117,7 +115,6 @@ User operation → Update config → Auto-refresh data → Re-render
 | **Gemini CLI** | **Percentage** | API returns `remainingFraction` (0.0-1.0), displayed as used percentage |
 | Zhipu AI / Z.ai | Token / Request | Token limits + MCP quotas |
 | GitHub Copilot | Request | Premium Request limits |
-| Claude Code | Cost / Time | 5-hour window cost estimation |
 | Kimi Code | Percentage | Weekly usage percentage + rate limit details percentage |
 
 **Gemini CLI Special Handling**:

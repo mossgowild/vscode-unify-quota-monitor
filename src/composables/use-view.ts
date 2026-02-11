@@ -14,7 +14,6 @@ import { loginWithAntigravity } from '../utils/auth/antigravity'
 import { loginWithApiKey } from '../utils/auth/api-key'
 import { loginWithGitHub } from '../utils/auth/github'
 import { loginWithGeminiCli } from '../utils/auth/gemini'
-import { checkClaudeCodeInstalled } from '../utils/usage/claude'
 import { ERROR_MESSAGES, UI_MESSAGES, UI_TEXT } from '../constants'
 
 export function useView() {
@@ -538,13 +537,6 @@ export function useView() {
       credential = await loginWithGitHub()
     } else if (providerId === 'gemini-cli') {
       credential = await loginWithGeminiCli()
-    } else if (providerId === 'claude-code') {
-      const isInstalled = await checkClaudeCodeInstalled()
-      if (!isInstalled) {
-        window.showErrorMessage(ERROR_MESSAGES.CLAUDE.NOT_INSTALLED)
-        return
-      }
-      credential = 'local'
     } else {
       credential = await loginWithApiKey(providerId as 'zhipu' | 'zai' | 'kimi-code')
     }
@@ -626,13 +618,6 @@ export function useView() {
       credential = await loginWithAntigravity()
     } else if (account.providerId === 'gemini-cli') {
       credential = await loginWithGeminiCli()
-    } else if (account.providerId === 'claude-code') {
-      const isInstalled = await checkClaudeCodeInstalled()
-      if (!isInstalled) {
-        window.showErrorMessage(ERROR_MESSAGES.CLAUDE.NOT_INSTALLED)
-        return
-      }
-      credential = 'local'
     } else {
       credential = await loginWithApiKey(account.providerId as 'zhipu' | 'zai')
     }

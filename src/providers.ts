@@ -49,15 +49,6 @@ function getProviderDefinitions(): ProviderDefinition[] {
       },
     },
     {
-      id: PROVIDERS.CLAUDE.ID,
-      name: PROVIDERS.CLAUDE.NAME,
-      auth: {
-        required: false,
-        type: 'local',
-        placeholder: UI_TEXT.PLACEHOLDERS.LOCAL_LOGS,
-      },
-    },
-    {
       id: PROVIDERS.KIMI.ID,
       name: PROVIDERS.KIMI.NAME,
       auth: {

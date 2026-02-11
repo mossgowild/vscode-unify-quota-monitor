@@ -38,14 +38,13 @@
             "properties": {
               "provider": {
                 "type": "string",
-                "markdownDescription": "Provider type: `google-antigravity` (Google Antigravity), `github-copilot` (GitHub Copilot), `gemini-cli` (Gemini CLI), `claude-code` (Claude Code), `zhipu` (Zhipu AI), `zai` (Z.ai), `kimi-code` (Kimi Code)",
+                "markdownDescription": "Provider type: `google-antigravity` (Google Antigravity), `github-copilot` (GitHub Copilot), `gemini-cli` (Gemini CLI), `zhipu` (Zhipu AI), `zai` (Z.ai), `kimi-code` (Kimi Code)",
                 "enum": [
                   "google-antigravity",
                   "github-copilot",
                   "gemini-cli",
                   "zhipu",
                   "zai",
-                  "claude-code",
                   "kimi-code"
                 ],
                 "enumDescriptions": [
@@ -54,7 +53,6 @@
                   "Gemini CLI",
                   "Zhipu AI (智谱 AI)",
                   "Z.ai",
-                  "Claude Code",
                   "Kimi Code"
                 ]
               },
