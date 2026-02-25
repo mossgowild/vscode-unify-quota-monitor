@@ -1,27 +1,23 @@
 import { defineExtension, defineLogger, useCommand } from 'reactive-vscode'
-import { useConfig } from './composables/use-config'
-import { useAccounts } from './composables/use-accounts'
-import { useUsage } from './composables/use-usage'
 import { useView } from './composables/use-view'
+import { useProviders } from './composables/use-providers'
+import { useMenu } from './composables/use-menu'
 
 const logger = defineLogger('Unify Quota Monitor')
 
 export = defineExtension(() => {
   logger.info('Extension Activated')
 
-  useConfig()
-  useAccounts()
-  const usage = useUsage()
-  const view = useView()
+  const { refresh } = useProviders()
+  const { showAccountMenu } = useMenu()
+  useView()
 
-  useCommand('unifyQuotaMonitor.settings', () => view.showAccountMenu())
-  useCommand('unifyQuotaMonitor.refresh', () => usage.refresh())
+  useCommand('unifyQuotaMonitor.settings', () => showAccountMenu())
+  useCommand('unifyQuotaMonitor.refresh', () => refresh())
 
-  usage.startAutoRefresh()
-  usage.refresh()
+  refresh()
 
   return () => {
-    usage.stopAutoRefresh()
     logger.info('Extension Deactivated')
   }
 })

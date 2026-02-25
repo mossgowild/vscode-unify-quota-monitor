@@ -1,125 +1,131 @@
-# Architecture Design
+# Architecture
 
-## Reactive MVC & Unidirectional Data Flow
+## Overview
 
-This project adopts a strict **unidirectional data flow** architecture, following the MVC pattern, based on the `reactive-vscode` framework and Vue Reactivity System for automatic reactivity.
+Unify Quota Monitor uses **Reactive MVC** with **Unidirectional Data Flow**, built on the `reactive-vscode` framework.
 
-### Data Flow
+## Supported Providers
 
-1.  **View (useView)**: User operation → Call utility function to get credentials → Call `useAccounts` to update configuration (Model)
-2.  **Model (config)**: Configuration data changes (Reactivity)
-3.  **Controller (useUsage)**: `watchEffect` detects `config` changes → Automatically recalculate/fetch data → Update `providers` (Computed)
-4.  **View (useView)**: `html` (Computed) depends on `providers` → Automatically re-render Webview
+| ID | Name | Auth | Stored |
+|---|---|---|---|
+| `antigravity` | Google Antigravity | OAuth | refresh_token |
+| `gemini` | Gemini CLI | OAuth | accessToken + refresh_token |
+| `copilot` | GitHub Copilot | OAuth | VS Code session |
+| `zhipu` | Zhipu AI | API Key | API Key |
+| `zai` | Z.AI | API Key | API Key |
+| `kimi` | Kimi Code | API Key | API Key |
 
-### Call Constraints (Strict Dependency Rules)
-
-| Module | Can Only Call | Responsibilities |
-|---|---|---|
-| **useView** | `useUsage`, `config`, `utils` | UI rendering, user interaction, write configuration |
-| **useUsage** | `useAccounts`, `utils` | Data fetching, auto-refresh logic |
-| **useAccounts** | `useConfig` | Account data reading, CRUD wrapper |
-| **useConfig** | None | Configuration definition |
-| **utils/** | None | Pure logic utility functions (Auth, OAuth) |
-
-> **Note**: `useAuth` has been removed, authentication logic is handled by stateless utility functions.
-
-### Reactive Architecture Features
-
-#### Framework API Usage
-
-- **defineConfig**: Define configuration interface in `use-config.ts`
-  ```typescript
-  export const config = defineConfig<Config>('unifyQuotaMonitor')
-  ```
-
-- **defineService**: Create singleton service in `use-usage.ts`
-  ```typescript
-  export const useUsage = defineService(() => {
-    // Service implementation
-  })
-  ```
-
-- **useWebviewView**: Manage Webview in `use-view.ts`
-  ```typescript
-  const html = computed(() => `...`)
-  useWebviewView('unifyQuotaMonitor.usageView', { html })
-  ```
-
-#### Reactive Implementation
-
-- **State Management**: Use Vue Reactivity API (`ref`, `computed`, `watchEffect`)
-  - `ref`: Reactive state (providers, isRefreshing, hasLoadedOnce)
-  - `computed`: Derived state (accounts, html)
-  - `watchEffect`: Automatically respond to configuration changes
-
-- **Reactivity**: Any configuration item (`providers`, `autoRefresh`) changes will automatically trigger data refresh and UI redraw, no need to manually call `refresh`
-  ```typescript
-  // In use-usage.ts
-  watchEffect(() => {
-    // Automatically execute when config.providers or config.autoRefresh changes
-    fetchAllUsage()
-  })
-  ```
-
-- **Debounce**: `useUsage` implements debounce logic to avoid excessive requests from frequent configuration changes
-
-## Usage Module Architecture
-
-Each provider's usage fetching logic is extracted into independent utility modules with unified interface design:
+## Project Structure
 
 ```
-src/utils/usage/
-├── claude.ts      # Claude Code - Local log reading
-├── github.ts      # GitHub Copilot - API calls
-├── google.ts      # Google Antigravity - Cloud API + Token refresh
-├── gemini.ts      # Gemini CLI - Cloud API + Token refresh + retry
-└── zhipu.ts       # Zhipu AI / Z.ai - API Key authentication
+src/
+├── extension.ts          # Entry: composables init order
+├── types.ts              # Type exports
+├── composables/          # Reactive-vscode composables
+│   ├── use-*.ts          # Core composables (config, providers, view, menu)
+│   └── use-*-provider.ts # Provider implementations
+└── utils/                # Stateless helpers
 ```
 
-### Unified Interface
+## Layer Architecture
 
-All Usage modules follow the unified `FetchUsageResult` interface:
+```
+┌─────────────────────────────────────────┐
+│  View Layer                             │
+│  ├── useMenu (QuickPick menus)          │
+│  └── useView (Webview HTML)             │
+│       ↓ only reads providersMap          │
+├─────────────────────────────────────────┤
+│  Controller Layer                       │
+│  └── useProviders                       │
+│       ├── manages provider instances    │
+│       └── provides global refresh       │
+│       ↓ only calls useConfig             │
+├─────────────────────────────────────────┤
+│  Model Layer                            │
+│  └── useConfig (reactive-vscode)        │
+│       └── configuration persistence     │
+├─────────────────────────────────────────┤
+│  Domain Layer                           │
+│  └── providers/*                        │
+│       └── auth + usage fetch logic      │
+└─────────────────────────────────────────┘
+```
+
+## Data Flow
+
+```
+User Action → useMenu → providersMap[id].login()
+                ↓
+          config.providers updated
+                ↓
+    providersMap[id].accounts reacts
+                ↓
+        useView html recomputes
+                ↓
+           Webview re-renders
+```
+
+## Key Principles
+
+1. **No upward calls**: Lower layers cannot call upper layers
+2. **providersMap is the interface**: View layers read from `providersMap`, never call `useProviders` methods
+3. **Direct method access**: `providersMap[id].login()`, `.logout()`, `.rename()`, `.refresh()`
+4. **Reactive by default**: All state changes flow through Vue reactivity
+
+## Framework APIs
+
+| API | Purpose | Used In |
+|-----|---------|---------|
+| `defineConfig` | Reactive configuration | `useConfig` |
+| `useWebviewView` | Webview panel | `useView` |
+| `ref/computed/watch` | Vue reactivity | All composables |
+
+## Initialization Order
 
 ```typescript
-export interface FetchUsageResult {
-  success: boolean
-  usage: UsageCategory[]
-  error?: string
-  lastUpdated: string
+// extension.ts
+const { refresh } = useProviders()    // 1. Sets up providers + auto-refresh
+const { showAccountMenu } = useMenu() // 2. Menu uses providersMap internally
+useView()                             // 3. Registers webview, reads providersMap
+```
+
+#### Provider Registration
+```typescript
+// use-providers.ts
+const zhipu = useZhipuProvider()
+const zai = useZaiProvider()
+// ...
+
+const providersMap: Record<ProviderId, UseBaseProviderReturn> = {
+  zhipu: zhipu,
+  zai: zai,
+  // ...
 }
 ```
 
-### Design Principles
-
-- **Pure Functions**: Usage functions do not depend on external state, input credential, return result
-- **Token Refresh Callback**: For providers that need token refresh (Google, Gemini), notify caller to update storage via callback function
-- **Error Handling**: All errors are wrapped in `FetchUsageResult`, no exceptions thrown
-- **Separation of Concerns**: `use-usage.ts` is only responsible for coordination and scheduling, specific API call logic is delegated to utils
-
-### Usage Example
-
+#### Config-Driven Provider Example (Zhipu)
 ```typescript
-// Call method in use-usage.ts
-const result = await fetchGitHubCopilotUsage()
-if (!result.success) {
-  return createErrorAccount(account, result.error)
-}
-return {
-  id: account.id,
-  alias: account.alias,
-  credential: account.credential,
-  usage: result.usage,
-  lastUpdated: result.lastUpdated
+// use-zhipu-provider.ts
+export function useZhipuProvider() {
+  return useApiKeyProvider({
+    id: 'zhipu',
+    name: 'Zhipu AI',
+    keyPrefix: 'sk-',
+    fetchUsage: fetchZhipuUsage,
+  })
 }
 ```
 
 ### Code Rules
 
-- **Unidirectional Data Flow**: Strictly prohibit lower-layer modules from calling upper-layer modules (e.g., `useUsage` cannot call `useView`)
-- **Utility Function Separation**: Pure logic, stateless code should be placed in `src/utils/`
-- **WatchEffect**: Prefer using `watchEffect` for reactive dependencies to avoid deep traversal of configuration Proxy objects
+- **Unidirectional Data Flow**: Lower layers never call upper layers (e.g., domain layer cannot call view layer)
+- **Provider Encapsulation**: Provider auth/usage logic in composables (`use-*-provider.ts`)
+- **Watch**: Use Vue `watch` for reactive dependencies, avoid deep Proxy traversal
 
 ### Related Documentation
 
-- [UI/UX Design Guidelines](./ui-ux.md) - Interface styles and interaction design
-- [Authentication Mechanism](./authentication.md) - OAuth and Token management
+- [Composables](./composables.md) - Core building blocks
+- [Providers](./providers.md) - Provider implementations
+- [Authentication](./authentication.md) - OAuth and Token management
+- [UI/UX](./ui-ux.md) - Design guidelines

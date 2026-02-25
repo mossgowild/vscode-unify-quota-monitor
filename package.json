@@ -30,80 +30,57 @@
       "title": "Unify Quota Monitor",
       "properties": {
         "unifyQuotaMonitor.providers": {
-          "type": "array",
-          "default": [],
+          "type": "object",
+          "default": {},
           "markdownDescription": "Configured provider accounts. Use the **Manage Accounts** command to add, edit, or remove accounts interactively.",
-          "items": {
-            "type": "object",
-            "properties": {
-              "provider": {
-                "type": "string",
-                "markdownDescription": "Provider type: `google-antigravity` (Google Antigravity), `github-copilot` (GitHub Copilot), `gemini-cli` (Gemini CLI), `zhipu` (Zhipu AI), `zai` (Z.AI), `kimi-code` (Kimi Code)",
-                "enum": [
-                  "google-antigravity",
-                  "github-copilot",
-                  "gemini-cli",
-                  "zhipu",
-                  "zai",
-                  "kimi-code"
-                ],
-                "enumDescriptions": [
-                  "Google Antigravity",
-                  "GitHub Copilot",
-                  "Gemini CLI",
-                  "Zhipu AI (智谱 AI)",
-                  "Z.AI",
-                  "Kimi Code"
-                ]
-              },
-              "name": {
-                "type": "string",
-                "markdownDescription": "Optional alias for this provider group."
-              },
-              "accounts": {
-                "type": "array",
-                "markdownDescription": "List of accounts for this provider.",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "credential": {
-                      "type": "string",
-                      "markdownDescription": "Authentication credentials. OAuth tokens for OpenAI/Google/Gemini CLI/GitHub, or API keys for Zhipu AI/Z.AI"
-                    },
-                    "name": {
-                      "type": "string",
-                      "markdownDescription": "Display name for this account (shown in the quota panel)"
-                    }
-                  },
-                  "required": [
-                    "credential"
-                  ]
+          "additionalProperties": {
+            "type": "array",
+            "markdownDescription": "List of accounts for this provider",
+            "items": {
+              "type": "object",
+              "properties": {
+                "credential": {
+                  "type": "string",
+                  "markdownDescription": "Authentication credentials. OAuth tokens for OAuth providers, or API keys for API key providers"
+                },
+                "name": {
+                  "type": "string",
+                  "markdownDescription": "Display name for this account (shown in the quota panel)"
                 }
-              }
-            },
-            "required": [
-              "provider",
-              "accounts"
+              },
+              "required": [
+                "credential"
+              ]
+            }
+          },
+          "propertyNames": {
+            "enum": [
+              "antigravity",
+              "copilot",
+              "gemini",
+              "zhipu",
+              "zai",
+              "kimi"
+            ],
+            "enumDescriptions": [
+              "Google Antigravity",
+              "GitHub Copilot",
+              "Gemini CLI",
+              "Zhipu AI (智谱 AI)",
+              "Z.AI",
+              "Kimi Code"
             ]
           }
         },
-        "unifyQuotaMonitor.autoRefresh": {
-          "type": "object",
-          "default": {
-            "enabled": true,
-            "intervalMs": 180000
-          },
-          "markdownDescription": "Automatic refresh settings for keeping quota data up-to-date",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "markdownDescription": "Automatically refresh quota data at the specified interval"
-            },
-            "intervalMs": {
-              "type": "number",
-              "markdownDescription": "Refresh interval in milliseconds. Default: 180000 (3 minutes). Minimum recommended: 60000 (1 minute)"
-            }
-          }
+        "unifyQuotaMonitor.autoRefreshEnabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Automatically refresh quota data at the specified interval"
+        },
+        "unifyQuotaMonitor.autoRefreshIntervalMs": {
+          "type": "number",
+          "default": 180000,
+          "markdownDescription": "Refresh interval in milliseconds. Default: 180000 (3 minutes). Minimum recommended: 60000 (1 minute)"
         }
       }
     },

@@ -1,58 +1,42 @@
-export type ProviderId = 'zhipu' | 'zai' | 'google-antigravity' | 'github-copilot' | 'gemini-cli' | 'kimi-code'
+/* eslint-disable @typescript-eslint/naming-convention */
 
-export interface UsageCategory {
-  name: string
-  limitType: 'token' | 'request' | 'credit'
-  used: number
-  total: number
-  percentageOnly?: boolean
-  resetTime?: string
-}
-
-export interface ProviderAuth {
-  required: boolean
-  type: 'oauth' | 'key' | 'local'
-  placeholder?: string
-}
-
-export interface ProviderDefinition {
-  id: ProviderId
-  name: string
-  auth: ProviderAuth
-}
-
-export interface Provider extends ProviderDefinition {
-  accounts: Account[]
-}
+export type ProviderId =
+  | 'zhipu'
+  | 'zai'
+  | 'antigravity'
+  | 'copilot'
+  | 'gemini'
+  | 'kimi'
 
 export interface ConfigAccount {
   credential: string
   name?: string
 }
 
-export interface ProviderConfig {
-  provider: ProviderId
-  name?: string
-  accounts: ConfigAccount[]
+export type ConfigProvider = Record<ProviderId, ConfigAccount[]>
+
+// 扁平化配置类型（reactive-vscode defineConfig 需要）
+export interface Config {
+  providers: ConfigProvider
+  autoRefreshEnabled: boolean
+  autoRefreshIntervalMs: number
 }
 
-export interface Account {
-  id: string
-  alias?: string
-  credential: string
-  usage: UsageCategory[]
-  lastUpdated: string
+export interface UsageItem {
+  name: string
+  type: 'percentage' | 'quantity'
+  used: number
+  total?: number
+  resetTime?: string
+}
+
+export interface ViewAccount {
+  name: string
+  usage: UsageItem[]
   error?: string
 }
 
-export interface AutoRefreshConfig {
-  enabled: boolean
-  intervalMs: number
-}
-
-export interface FetchUsageResult {
-  success: boolean
-  usage: UsageCategory[]
-  error?: string
-  lastUpdated: string
+export interface ViewProvider {
+  name: string
+  accounts: ViewAccount[]
 }
